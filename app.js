@@ -1,12 +1,32 @@
 // ข้อมูลการตั้งค่า Spotify Developer
-const CLIENT_ID = '718b9cea339949308f3f8f3f12a81d85'; // ใส่ Client ID ของคุณ
+const CLIENT_ID = '718b9cea339949308f3f8f3f12a81d85'; // Client ID ของคุณ
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = 'user-read-playback-state user-read-currently-playing user-read-private';
 
+// ** [จุดที่ต้องใส่ Spotify ID ของเพลงที่ต้องการ] **
+const TARGET_TRACK_IDS = [
+    '5jC3lBWBcVdby76sqWwqAE'
+];
+
+// ** ค่าตั้งค่า Firebase Config ของคุณ **
+const firebaseConfig = {
+    apiKey: "ใส่_API_KEY_ของคุณ",
+    authDomain: "ใส่_AUTH_DOMAIN_ของคุณ",
+    projectId: "ใส่_PROJECT_ID_ของคุณ",
+    storageBucket: "ใส่_STORAGE_BUCKET_ของคุณ",
+    messagingSenderId: "ใส่_MESSAGING_SENDER_ID_ของคุณ",
+    appId: "ใส่_APP_ID_ของคุณ"
+};
+
+// เริ่มต้นใช้งาน Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 let accessToken = localStorage.getItem('spotify_access_token');
-let startTime = null;
 let timerInterval = null;
 let isTracking = false;
+let currentSpotifyId = null; 
+let totalElapsedSeconds = 0; 
 
 const loginBtn = document.getElementById('login-btn');
 const playerSection = document.getElementById('player-section');
@@ -24,7 +44,6 @@ function generateRandomString(length) {
     return text;
 }
 
-// ฟังก์ชันเข้ารหัส Code Challenge สำหรับ PKCE
 async function generateCodeChallenge(codeVerifier) {
     const encoder = new TextEncoder();
     const data = encoder.encode(codeVerifier);
@@ -35,7 +54,7 @@ async function generateCodeChallenge(codeVerifier) {
         .replace(/=+$/, '');
 }
 
-// 1. ระบบจัดการ Login (ใช้ response_type=code + PKCE)
+// 1. ระบบจัดการ Login
 loginBtn.addEventListener('click', async () => {
     const codeVerifier = generateRandomString(64);
     localStorage.setItem('code_verifier', codeVerifier);
@@ -54,7 +73,7 @@ loginBtn.addEventListener('click', async () => {
     window.location.href = authUrl.toString();
 });
 
-// ตรวจสอบ Code หลังจาก Spotify Redirect กลับมา แล้วแลกเป็น Access Token
+// ตรวจสอบ Code หลังจาก Spotify Redirect กลับมา (ใส่ async เพื่อรอโหลดข้อมูลให้เสร็จ)
 window.onload = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
@@ -78,7 +97,6 @@ window.onload = async () => {
             if (data.access_token) {
                 accessToken = data.access_token;
                 localStorage.setItem('spotify_access_token', accessToken);
-                // ล้างค่า Code ออกจาก URL เพื่อความสะอาด
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
         } catch (error) {
@@ -89,14 +107,14 @@ window.onload = async () => {
     if (accessToken) {
         loginBtn.classList.add('hidden');
         playerSection.classList.remove('hidden');
-        statusText.textContent = "เชื่อมต่อสำเร็จ! กำลังโหลดข้อมูลโปรไฟล์...";
+        statusText.textContent = "เชื่อมต่อสำเร็จ! กำลังดึงสถิติเดิมจากคลาวด์...";
         
-        fetchUserProfile(accessToken);
-        startCheckingMusic();
+        // ** สำคัญ: รอโหลดโปรไฟล์และข้อมูลจาก Firestore ให้เสร็จก่อนทุกอย่างถึงค่อยเริ่มทำงาน **
+        await fetchUserProfile(accessToken);
     }
 };
 
-// 1.1 ฟังก์ชันดึงข้อมูลโปรไฟล์ผู้ใช้
+// 1.1 ดึงข้อมูลโปรไฟล์ผู้ใช้และเชื่อมต่อกับ Firestore
 async function fetchUserProfile(token) {
     try {
         const response = await fetch('https://api.spotify.com/v1/me', {
@@ -105,12 +123,22 @@ async function fetchUserProfile(token) {
         
         if (response.ok) {
             const data = await response.json();
+            currentSpotifyId = data.id; // ใช้ Spotify ID เป็นคีย์อ้างอิง
+            
             document.getElementById('user-name').textContent = data.display_name || "Spotify User";
             if (data.images && data.images.length > 0) {
                 document.getElementById('user-avatar').src = data.images[0].url;
             }
             document.getElementById('user-profile').classList.remove('hidden');
-            statusText.textContent = "กำลังตรวจเช็กเพลงที่คุณฟัง...";
+
+            // ** ดึงเวลานอนสะสมเดิมจาก Firebase Firestore มาเก็บไว้และแสดงผล **
+            await loadUserDataFromFirestore(currentSpotifyId, data.display_name);
+
+            statusText.textContent = "โหลดสถิติสำเร็จ! กำลังตรวจเช็กเพลงที่คุณฟัง...";
+            
+            // ** เมื่อดึงข้อมูลเดิมเสร็จเรียบร้อยแล้ว ค่อยเริ่มรันระบบเช็กเพลงและจับเวลา **
+            startCheckingMusic();
+
         } else {
             localStorage.removeItem('spotify_access_token');
             loginBtn.classList.remove('hidden');
@@ -118,6 +146,28 @@ async function fetchUserProfile(token) {
         }
     } catch (error) {
         console.error("Error fetching user profile:", error);
+    }
+}
+
+// 1.2 ฟังก์ชันดึงข้อมูลจาก Firestore
+async function loadUserDataFromFirestore(spotifyId, displayName) {
+    const userRef = db.collection('sleep_users').doc(spotifyId);
+    try {
+        const doc = await userRef.get();
+        if (doc.exists) {
+            totalElapsedSeconds = doc.data().total_sleep_seconds || 0;
+        } else {
+            totalElapsedSeconds = 0;
+            await userRef.set({
+                spotify_id: spotifyId,
+                name: displayName,
+                total_sleep_seconds: 0,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        updateTimerDisplay(totalElapsedSeconds);
+    } catch (error) {
+        console.error("Error loading user data from Firestore:", error);
     }
 }
 
@@ -143,8 +193,9 @@ function startCheckingMusic() {
 
                 trackNameEl.textContent = `${currentTrackName} - ${artistName}`;
 
-                // เงื่อนไข: ถ้าเล่นเพลง (หรือปล่อยว่างไว้จับทุกเพลง)
-                if (currentTrackId === "5jC3lBWBcVdby76sqWwqAE") {
+                const isTargetTrack = TARGET_TRACK_IDS.length === 0 || TARGET_TRACK_IDS.includes(currentTrackId);
+
+                if (isTargetTrack) {
                     statusText.textContent = "กำลังนอนหลับฝันดีไปพร้อมกับเสียงเพลง... 💤";
                     if (!isTracking) {
                         startTimer();
@@ -160,26 +211,39 @@ function startCheckingMusic() {
     }, 5000);
 }
 
-// 3. ระบบจับเวลา
+// 3. ระบบจับเวลาและบันทึกลง Firestore แบบเรียลไทม์
 function startTimer() {
+    if (isTracking) return;
     isTracking = true;
-    if (!startTime) {
-        startTime = Date.now();
-    }
-    timerInterval = setInterval(() => {
-        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-        const hours = String(Math.floor(elapsedSeconds / 3600)).padStart(2, '0');
-        const minutes = String(Math.floor((elapsedSeconds % 3600) / 60)).padStart(2, '0');
-        const seconds = String(elapsedSeconds % 60).padStart(2, '0');
-        
-        sleepTimerEl.textContent = `${hours}:${minutes}:${seconds}`;
+
+    timerInterval = setInterval(async () => {
+        totalElapsedSeconds++;
+        updateTimerDisplay(totalElapsedSeconds);
+
+        if (currentSpotifyId) {
+            try {
+                await db.collection('sleep_users').doc(currentSpotifyId).set({
+                    total_sleep_seconds: totalElapsedSeconds,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } catch (error) {
+                console.error("Error updating sleep time to Firestore:", error);
+            }
+        }
     }, 1000);
 }
 
 function stopTimer() {
     isTracking = false;
-    startTime = null;
     clearInterval(timerInterval);
+}
+
+function updateTimerDisplay(totalSeconds) {
+    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    const seconds = String(totalSeconds % 60).padStart(2, '0');
+    
+    sleepTimerEl.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
 // จัดการปุ่มแชร์ไปที่ X
@@ -191,7 +255,7 @@ if (shareXBtn) {
         const currentUrl = window.location.href;
 
         const tweetMessage = encodeURIComponent(
-            `🌙 ตอนนี้ฉันนอนหลับฝันดีไปแล้ว ${timerText} กับเพลง "${trackText}" 💤\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
+            `🌙 ตอนนี้ฉันสะสมเวลานอนหลับฝันดีไปแล้ว ${timerText} กับเพลง "${trackText}" 💤\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
         );
 
         const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;
