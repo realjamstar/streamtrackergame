@@ -3,12 +3,12 @@ const CLIENT_ID = '718b9cea339949308f3f8f3f12a81d85'; // Client ID ของค�
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = 'user-read-playback-state user-read-currently-playing user-read-private';
 
-// ** [จุดที่ต้องใส่ Spotify ID ของเพลงที่ต้องการ] **
+// ** [1. ใส่ Spotify ID ของเพลงที่ต้องการตรงนี้] **
 const TARGET_TRACK_IDS = [
     '5jC3lBWBcVdby76sqWwqAE'
 ];
 
-// ** ค่าตั้งค่า Firebase Config ของคุณ **
+// ** [2. ใส่ Firebase Config ของคุณตรงนี้] **
 const firebaseConfig = {
     apiKey: "ใส่_API_KEY_ของคุณ",
     authDomain: "ใส่_AUTH_DOMAIN_ของคุณ",
@@ -54,7 +54,7 @@ async function generateCodeChallenge(codeVerifier) {
         .replace(/=+$/, '');
 }
 
-// 1. ระบบจัดการ Login
+// 1. ระบบจัดการ Login (PKCE)
 loginBtn.addEventListener('click', async () => {
     const codeVerifier = generateRandomString(64);
     localStorage.setItem('code_verifier', codeVerifier);
@@ -73,7 +73,7 @@ loginBtn.addEventListener('click', async () => {
     window.location.href = authUrl.toString();
 });
 
-// ตรวจสอบ Code หลังจาก Spotify Redirect กลับมา (ใส่ async เพื่อรอโหลดข้อมูลให้เสร็จ)
+// ตรวจสอบ Code หลังจาก Spotify Redirect กลับมา
 window.onload = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
@@ -109,7 +109,6 @@ window.onload = async () => {
         playerSection.classList.remove('hidden');
         statusText.textContent = "เชื่อมต่อสำเร็จ! กำลังดึงสถิติเดิมจากคลาวด์...";
         
-        // ** สำคัญ: รอโหลดโปรไฟล์และข้อมูลจาก Firestore ให้เสร็จก่อนทุกอย่างถึงค่อยเริ่มทำงาน **
         await fetchUserProfile(accessToken);
     }
 };
@@ -123,7 +122,7 @@ async function fetchUserProfile(token) {
         
         if (response.ok) {
             const data = await response.json();
-            currentSpotifyId = data.id; // ใช้ Spotify ID เป็นคีย์อ้างอิง
+            currentSpotifyId = data.id; 
             
             document.getElementById('user-name').textContent = data.display_name || "Spotify User";
             if (data.images && data.images.length > 0) {
@@ -131,12 +130,9 @@ async function fetchUserProfile(token) {
             }
             document.getElementById('user-profile').classList.remove('hidden');
 
-            // ** ดึงเวลานอนสะสมเดิมจาก Firebase Firestore มาเก็บไว้และแสดงผล **
             await loadUserDataFromFirestore(currentSpotifyId, data.display_name);
 
             statusText.textContent = "โหลดสถิติสำเร็จ! กำลังตรวจเช็กเพลงที่คุณฟัง...";
-            
-            // ** เมื่อดึงข้อมูลเดิมเสร็จเรียบร้อยแล้ว ค่อยเริ่มรันระบบเช็กเพลงและจับเวลา **
             startCheckingMusic();
 
         } else {
