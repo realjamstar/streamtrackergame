@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleepy Music Tracker 🌙</title>
+    <!-- Tailwind CSS สำหรับจัดเว็บ -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-900 text-white flex flex-col items-center justify-center min-h-screen">
+
+    <div class="text-center p-6 bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+        <h1 class="text-2xl font-bold mb-2">💤 โหมดจำศีลกับเสียงเพลง</h1>
+        
+        <!-- ส่วนแสดงข้อมูลโปรไฟล์ (ซ่อนไว้ก่อนจนกว่าจะล็อกอิน) -->
+        <div id="user-profile" class="hidden flex items-center justify-center space-x-3 mb-4 bg-slate-700/50 p-3 rounded-xl">
+            <img id="user-avatar" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-green-400 object-cover">
+            <span id="user-name" class="font-semibold text-green-300"></span>
+        </div>
+
+        <p id="status-text" class="text-slate-400 mb-6">กรุณาล็อกอินเข้าสู่ระบบ Spotify ก่อนเริ่มใช้งาน</p>
+
+        <!-- ปุ่ม Login Spotify -->
+        <button id="login-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition duration-200">
+            Login with Spotify
+        </button>
+
+        <!-- ส่วนแสดงผลเมื่อเพลงกำลังเล่น -->
+        <div id="player-section" class="hidden mt-6">
+            <div class="mb-4">
+                <p class="text-sm text-slate-400">กำลังฟังเพลง:</p>
+                <p id="track-name" class="text-lg font-semibold text-green-400">-</p>
+            </div>
+
+            <!-- กล่องรวมตัวการ์ตูน นาฬิกาจับเวลา และปุ่มแชร์ -->
+            <div class="bg-slate-700/80 p-5 rounded-2xl border border-slate-600 space-y-4">
+                <!-- ตัวการ์ตูนนอนหลับ และอนิเมชั่น Zzz -->
+                <div class="relative inline-block my-2">
+                    <div class="text-6xl sleepy-character">🛌</div>
+                    <div id="zzz-animation" class="absolute -top-4 -right-4 text-xl text-blue-300 zzz-effect">Zzz...</div>
+                </div>
+
+                <!-- นาฬิกาจับเวลานอนฝันดี -->
+                <div>
+                    <p class="text-xs text-slate-300">ระยะเวลานอนฝันดี:</p>
+                    <p id="sleep-timer" class="text-2xl font-mono font-bold text-yellow-400 mt-0.5">00:00:00</p>
+                </div>
+
+                <!-- ปุ่มแชร์ไป X (Twitter) -->
+                <button id="share-x-btn" class="w-full bg-black hover:bg-slate-900 border border-slate-700 text-white font-bold py-2.5 px-4 rounded-full transition duration-200 flex items-center justify-center space-x-2">
+                    <span>𝕏 แชร์สถิตินอนหลับไปที่ X</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

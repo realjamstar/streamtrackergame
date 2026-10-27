@@ -1,0 +1,39 @@
+/* นำเข้าฟอนต์หรือตั้งค่าพื้นฐานเพิ่มเติมถ้าต้องการ */
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap');
+
+body {
+    font-family: 'Prompt', sans-serif;
+}
+
+/* อนิเมชั่นขยับตัวการ์ตูนขึ้น-ลงเบาๆ ตอนนอนหลับ */
+@keyframes breathing {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-6px) scale(1.02);
+    }
+}
+
+.sleepy-character {
+    animation: breathing 4s ease-in-out infinite;
+}
+
+/* อนิเมชั่นให้ตัวหนังสือ Zzz ลอยขึ้นและจางหายไป */
+@keyframes floatUpZzz {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0) scale(0.8);
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(15px, -20px) scale(1.2);
+    }
+}
+
+.zzz-effect {
+    animation: floatUpZzz 2.5s ease-in-out infinite;
+}
