@@ -8,16 +8,16 @@ const TARGET_TRACK_IDS = [
     '5jC3lBWBcVdby76sqWwqAE'
 ];
 
-// ** [2. Firebase Config ของคุณ (ที่ถูกต้อง)] **
-const firebaseConfig = {
-    apiKey: "AIzaSyAZp_SDfUg0Gl-f5-52kQeCBWCHyLyBd_A",
-    authDomain: "streamtrackergame.firebaseapp.com",
-    projectId: "streamtrackergame",
-    storageBucket: "streamtrackergame.firebasestorage.app",
-    messagingSenderId: "47409702065",
-    appId: "1:47409702065:web:e0010d51b1b0ce69d22e90",
-    measurementId: "G-0HK9J9JMVB"
-};
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+
+// 📌 ดึงค่า firebaseConfig มาจากไฟล์ที่เราแยกไว้
+import { firebaseConfig } from "./firebase-config.js";
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 // เริ่มต้นใช้งาน Firebase (ใช้แบบ Compat เพื่อให้รองรับไฟล์ JS ธรรมดา)
 firebase.initializeApp(firebaseConfig);
