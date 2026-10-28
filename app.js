@@ -8,16 +8,12 @@ const TARGET_TRACK_IDS = [
     '5jC3lBWBcVdby76sqWwqAE'
 ];
 
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-
-// 📌 ดึงค่า firebaseConfig มาจากไฟล์ที่เราแยกไว้
 import { firebaseConfig } from "./firebase-config.js";
+import { getAuth } from "firebase/auth"; // 📌 ต้องมีบรรทัดนี้ถ้าจะใช้ล็อกอิน
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const auth = getAuth(app); // 📌 ต้องประกาศตัวแปร auth แบบนี้
 
 // เริ่มต้นใช้งาน Firebase (ใช้แบบ Compat เพื่อให้รองรับไฟล์ JS ธรรมดา)
 firebase.initializeApp(firebaseConfig);
