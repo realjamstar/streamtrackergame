@@ -3,22 +3,23 @@ const CLIENT_ID = '718b9cea339949308f3f8f3f12a81d85'; // Client ID ของค�
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = 'user-read-playback-state user-read-currently-playing user-read-private';
 
-// ** [1. ใส่ Spotify ID ของเพลงที่ต้องการตรงนี้] **
+// ** [1. Spotify ID เพลงที่คุณต้องการ] **
 const TARGET_TRACK_IDS = [
     '5jC3lBWBcVdby76sqWwqAE'
 ];
 
-// ** [2. ใส่ Firebase Config ของคุณตรงนี้] **
+// ** [2. Firebase Config ของคุณ (ที่ถูกต้อง)] **
 const firebaseConfig = {
-    apiKey: "ใส่_API_KEY_ของคุณ",
-    authDomain: "ใส่_AUTH_DOMAIN_ของคุณ",
-    projectId: "ใส่_PROJECT_ID_ของคุณ",
-    storageBucket: "ใส่_STORAGE_BUCKET_ของคุณ",
-    messagingSenderId: "ใส่_MESSAGING_SENDER_ID_ของคุณ",
-    appId: "ใส่_APP_ID_ของคุณ"
+    apiKey: "AIzaSyAZp_SDfUg0Gl-f5-52kQeCBWCHyLyBd_A",
+    authDomain: "streamtrackergame.firebaseapp.com",
+    projectId: "streamtrackergame",
+    storageBucket: "streamtrackergame.firebasestorage.app",
+    messagingSenderId: "47409702065",
+    appId: "1:47409702065:web:e0010d51b1b0ce69d22e90",
+    measurementId: "G-0HK9J9JMVB"
 };
 
-// เริ่มต้นใช้งาน Firebase
+// เริ่มต้นใช้งาน Firebase (ใช้แบบ Compat เพื่อให้รองรับไฟล์ JS ธรรมดา)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
