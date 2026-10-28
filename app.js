@@ -1,23 +1,21 @@
 // ข้อมูลการตั้งค่า Spotify Developer
 const CLIENT_ID = '718b9cea339949308f3f8f3f12a81d85'; // Client ID ของคุณ
 const REDIRECT_URI = window.location.origin + window.location.pathname;
-const SCOPES = 'user-read-playback-state user-read-currently-playing user-read-private';
+const SCOPES = 'user-read-playback-state user-read-currently-playing user-read-private user-read-recently-played';
 
 // ** [1. Spotify ID เพลงที่คุณต้องการ] **
 const TARGET_TRACK_IDS = [
     '5jC3lBWBcVdby76sqWwqAE'
 ];
 
+// นำเข้าการตั้งค่า Firebase จากไฟล์แยก (ต้องมั่นใจว่าไฟล์ firebase-config.js อยู่ในโฟลเดอร์เดียวกัน)
 import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { firebaseConfig } from "./firebase-config.js";
-import { getAuth } from "firebase/auth"; // 📌 ต้องมีบรรทัดนี้ถ้าจะใช้ล็อกอิน
 
+// เริ่มต้นใช้งาน Firebase Modular SDK
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app); // 📌 ต้องประกาศตัวแปร auth แบบนี้
-
-// เริ่มต้นใช้งาน Firebase (ใช้แบบ Compat เพื่อให้รองรับไฟล์ JS ธรรมดา)
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const db = getFirestore(app);
 
 let accessToken = localStorage.getItem('spotify_access_token');
 let timerInterval = null;
@@ -142,20 +140,20 @@ async function fetchUserProfile(token) {
     }
 }
 
-// 1.2 ฟังก์ชันดึงข้อมูลจาก Firestore
+// 1.2 ฟังก์ชันดึงข้อมูลจาก Firestore (ใช้ Firebase Modular SDK)
 async function loadUserDataFromFirestore(spotifyId, displayName) {
-    const userRef = db.collection('sleep_users').doc(spotifyId);
+    const userRef = doc(db, 'sleep_users', spotifyId);
     try {
-        const doc = await userRef.get();
-        if (doc.exists) {
-            totalElapsedSeconds = doc.data().total_sleep_seconds || 0;
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists()) {
+            totalElapsedSeconds = docSnap.data().total_sleep_seconds || 0;
         } else {
             totalElapsedSeconds = 0;
-            await userRef.set({
+            await setDoc(userRef, {
                 spotify_id: spotifyId,
                 name: displayName,
                 total_sleep_seconds: 0,
-                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                updated_at: serverTimestamp()
             });
         }
         updateTimerDisplay(totalElapsedSeconds);
@@ -215,9 +213,10 @@ function startTimer() {
 
         if (currentSpotifyId) {
             try {
-                await db.collection('sleep_users').doc(currentSpotifyId).set({
+                const userRef = doc(db, 'sleep_users', currentSpotifyId);
+                await setDoc(userRef, {
                     total_sleep_seconds: totalElapsedSeconds,
-                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                    updated_at: serverTimestamp()
                 }, { merge: true });
             } catch (error) {
                 console.error("Error updating sleep time to Firestore:", error);
