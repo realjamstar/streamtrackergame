@@ -1,9 +1,9 @@
 // ข้อมูลการตั้งค่า Spotify Developer
-const CLIENT_ID = '718b9cea339949308f3f8f3f12a81d85'; // Client ID ของคุณ
+const CLIENT_ID = '718b9cea339949308f3f8f3f12a81d85';
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = 'user-read-playback-state user-read-currently-playing user-read-private';
 
-// ** [ข้อ 1] กำหนดเฉพาะ Spotify ID ของเพลง Insomnia - RIIZE เพลงเดียวเท่านั้น **
+// ** กำหนดเฉพาะ Spotify ID ของเพลง Insomnia - RIIZE เพลงเดียวเท่านั้น **
 const TARGET_TRACK_ID = '5jC3lBWBcVdby76sqWwqAE';
 
 // นำเข้า Firebase Modular SDK จาก CDN
@@ -19,13 +19,15 @@ let accessToken = localStorage.getItem('spotify_access_token');
 let timerInterval = null;
 let isTracking = false;
 let currentSpotifyId = null; 
-let totalElapsedSeconds = 0; // เวลารวมสะสมทั้งหมดของเพลงนี้
+let totalElapsedSeconds = 0; 
+let selectedCharacter = "SHOTARO"; // ตัวละครเริ่มต้น
 
 const loginBtn = document.getElementById('login-btn');
 const playerSection = document.getElementById('player-section');
 const statusText = document.getElementById('status-text');
 const trackNameEl = document.getElementById('track-name');
 const sleepTimerEl = document.getElementById('sleep-timer');
+const selectedCharImg = document.getElementById('selected-char-img');
 
 // ฟังก์ชันสร้างรหัสสุ่มสำหรับ PKCE
 function generateRandomString(length) {
@@ -104,9 +106,44 @@ window.onload = async () => {
         
         await fetchUserProfile(accessToken);
     }
+
+    // จัดการการคลิกเลือกตัวละคร 6 ตัว
+    const charButtons = document.querySelectorAll('.char-btn');
+    charButtons.forEach(btn => {
+        if (btn.getAttribute('data-name') === selectedCharacter) {
+            btn.classList.add('selected');
+        }
+
+        btn.addEventListener('click', async () => {
+            charButtons.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+
+            selectedCharacter = btn.getAttribute('data-name');
+            const imgUrl = btn.getAttribute('data-img');
+
+            selectedCharImg.src = imgUrl;
+
+            // อัปเดตตำแหน่งพิกัดกล่องเวลาตามตัวละครนั้นๆ อัตโนมัติ
+            const timerContainer = document.querySelector('.pixel-timer-container');
+            if (timerContainer) {
+                timerContainer.className = "pixel-timer-container";
+                timerContainer.classList.add(`pos-${selectedCharacter.toLowerCase()}`);
+            }
+
+            // บันทึกตัวละครที่เลือกกลายลงใน Firebase ของ User นั้นๆ ทันที
+            if (currentSpotifyId) {
+                try {
+                    const userRef = doc(db, 'insomnia_sleep_users', currentSpotifyId);
+                    await setDoc(userRef, { selected_character: selectedCharacter }, { merge: true });
+                } catch (error) {
+                    console.error("Error saving selected character:", error);
+                }
+            }
+        });
+    });
 };
 
-// [ข้อ 3] ดึงข้อมูลโปรไฟล์ผู้ใช้และแยกฐานข้อมูลตาม Spotify ID ของแต่ละ User
+// ดึงข้อมูลโปรไฟล์ผู้ใช้และแยกฐานข้อมูลตาม Spotify ID
 async function fetchUserProfile(token) {
     try {
         const response = await fetch('https://api.spotify.com/v1/me', {
@@ -115,7 +152,7 @@ async function fetchUserProfile(token) {
         
         if (response.ok) {
             const data = await response.json();
-            currentSpotifyId = data.id; // ใช้ Spotify ID เป็นตัวแยก User
+            currentSpotifyId = data.id; 
             
             document.getElementById('user-name').textContent = data.display_name || "Spotify User";
             if (data.images && data.images.length > 0) {
@@ -123,7 +160,6 @@ async function fetchUserProfile(token) {
             }
             document.getElementById('user-profile').classList.remove('hidden');
 
-            // [ข้อ 3] โหลดสถิติเดิมของ User นี้จาก Firestore กลับมาแสดงผลทันที
             await loadUserDataFromFirestore(currentSpotifyId, data.display_name);
 
             statusText.textContent = "พร้อมแล้ว! กรุณาเปิดเพลง Insomnia - RIIZE บน Spotify";
@@ -139,19 +175,37 @@ async function fetchUserProfile(token) {
     }
 }
 
-// ฟังก์ชันโหลดข้อมูลสะสมเดิมจาก Firestore (แยกตาม doc(spotifyId))
+// ฟังก์ชันโหลดข้อมูลสะสมเดิมจาก Firestore (รวมถึงตัวละครที่เคยเลือกไว้)
 async function loadUserDataFromFirestore(spotifyId, displayName) {
     const userRef = doc(db, 'insomnia_sleep_users', spotifyId);
     try {
         const docSnap = await getDoc(userRef);
         if (docSnap.exists()) {
             totalElapsedSeconds = docSnap.data().total_sleep_seconds || 0;
+            const savedChar = docSnap.data().selected_character;
+            if (savedChar) {
+                selectedCharacter = savedChar;
+                const targetBtn = document.querySelector(`.char-btn[data-name="${selectedCharacter}"]`);
+                if (targetBtn) {
+                    document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
+                    targetBtn.classList.add('selected');
+                    selectedCharImg.src = targetBtn.getAttribute('data-img');
+                    
+                    // ปรับตำแหน่งพิกัดตามตัวละครที่เซฟไว้
+                    const timerContainer = document.querySelector('.pixel-timer-container');
+                    if (timerContainer) {
+                        timerContainer.className = "pixel-timer-container";
+                        timerContainer.classList.add(`pos-${selectedCharacter.toLowerCase()}`);
+                    }
+                }
+            }
         } else {
             totalElapsedSeconds = 0;
             await setDoc(userRef, {
                 spotify_id: spotifyId,
                 name: displayName,
                 total_sleep_seconds: 0,
+                selected_character: "SHOTARO",
                 updated_at: serverTimestamp()
             });
         }
@@ -161,7 +215,7 @@ async function loadUserDataFromFirestore(spotifyId, displayName) {
     }
 }
 
-// [ข้อ 1 & 2] ฟังก์ชันเช็กเพลงปัจจุบัน บังคับเฉพาะเพลง Insomnia เท่านั้น
+// ฟังก์ชันเช็กเพลงปัจจุบัน บังคับเฉพาะเพลง Insomnia เท่านั้น
 function startCheckingMusic() {
     setInterval(async () => {
         try {
@@ -183,14 +237,12 @@ function startCheckingMusic() {
 
                 trackNameEl.textContent = `${currentTrackName} - ${artistName}`;
 
-                // เช็กว่าเป็นเพลง Insomnia - RIIZE (ID: 5jC3lBWBcVdby76sqWwqAE) หรือไม่
                 if (currentTrackId === TARGET_TRACK_ID) {
-                    statusText.textContent = "กำลังฟัง Insomnia - RIIZE... กำลังสะสมเวลานอนฝันดี 💤";
+                    statusText.textContent = `กำลังฟัง Insomnia - RIIZE กับ ${selectedCharacter}... 💤`;
                     if (!isTracking) {
                         startTimer();
                     }
                 } else {
-                    // [ข้อ 1] ถ้าไม่ใช่เพลงนี้ จะไม่นับเวลาและหยุดจับทันที
                     statusText.textContent = "กำลังฟังเพลงอื่นอยู่ (ระบบนับเฉพาะเพลง Insomnia เท่านั้น)";
                     stopTimer();
                 }
@@ -201,7 +253,7 @@ function startCheckingMusic() {
     }, 5000);
 }
 
-// [ข้อ 2] ระบบจับเวลาและบันทึกสะสมทับข้อมูลเดิมใน Firestore แบบเรียลไทม์
+// ระบบจับเวลาและบันทึกสะสมลง Firestore แบบเรียลไทม์
 function startTimer() {
     if (isTracking) return;
     isTracking = true;
@@ -237,7 +289,7 @@ function updateTimerDisplay(totalSeconds) {
     sleepTimerEl.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
-// [ข้อ 3] จัดการปุ่มแชร์สถิติทั้งหมดไปที่ X (Twitter)
+// จัดการปุ่มแชร์สถิติไปที่ X (Twitter)
 const shareXBtn = document.getElementById('share-x-btn');
 if (shareXBtn) {
     shareXBtn.addEventListener('click', () => {
@@ -245,7 +297,7 @@ if (shareXBtn) {
         const currentUrl = window.location.href;
 
         const tweetMessage = encodeURIComponent(
-            `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE ไปแล้ว ${timerText} 💤✨\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
+            `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE โดยมี ${selectedCharacter} มาอยู่เป็นเพื่อน ไปแล้ว ${timerText} 💤✨\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
         );
 
         const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;

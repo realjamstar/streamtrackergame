@@ -1,38 +1,78 @@
-@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Prompt:wght@300;400;600&display=swap');
 
 body {
     font-family: 'Prompt', sans-serif;
 }
 
-/* อนิเมชั่นขยับตัวการ์ตูนขึ้น-ลงเบาๆ ตอนนอนหลับ */
+/* 🌙 โทนสีพาสเทลตอนกลางคืน (Night Pastel Background & Cards) */
+.night-pastel-bg {
+    background: linear-gradient(135deg, #18122B 0%, #291C3A 50%, #151122 100%);
+}
+
+.night-pastel-card {
+    background: rgba(35, 27, 56, 0.85);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(15, 10, 25, 0.6);
+}
+
+.night-pastel-inner {
+    background: rgba(26, 19, 43, 0.6);
+}
+
+/* ฟอนท์สไตล์ Pixel เกมยุคเก่า */
+.pixel-font {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(0.55rem, 1.8vw, 0.75rem);
+    letter-spacing: -1px;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
+}
+
+.pixel-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(216, 180, 254, 0.5);
+}
+
+/* กล่องจัดตำแหน่งเวลารวมให้อยู่ในช่องขาวบนการ์ด */
+.pixel-timer-container {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(18, 12, 31, 0.85);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(244, 114, 182, 0.4);
+    width: 75%;
+    text-align: center;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+/* 📌 พิกัดตำแหน่งเฉพาะสำหรับแต่ละตัวละคร (ปรับแต่งตรงนี้ถ้าต้องการขยับขึ้นลง) */
+.pos-shotaro { top: 62%; }
+.pos-eunseok { top: 60%; }
+.pos-sungchan { top: 64%; }
+.pos-wonbin { top: 61%; }
+.pos-sohee { top: 63%; }
+.pos-anton { top: 62%; }
+
+/* สไตล์ปุ่มเลือกตัวละครเมื่อถูกเลือก (Active ธีมพาสเทลชมพู-ม่วง) */
+.char-btn.selected {
+    border-color: #f472b6 !important;
+    background-color: rgba(244, 114, 182, 0.2) !important;
+    box-shadow: 0 0 12px rgba(244, 114, 182, 0.4);
+}
+
+/* อนิเมชั่นการ์ดหายใจเบาๆ */
 @keyframes breathing {
     0%, 100% {
         transform: translateY(0) scale(1);
     }
     50% {
-        transform: translateY(-6px) scale(1.02);
+        transform: translateY(-3px) scale(1.01);
     }
 }
 
-.sleepy-character {
+#selected-char-img {
     animation: breathing 4s ease-in-out infinite;
-}
-
-/* อนิเมชั่นให้ตัวหนังสือ Zzz ลอยขึ้นและจางหายไป */
-@keyframes floatUpZzz {
-    0% {
-        opacity: 0;
-        transform: translate(0, 0) scale(0.8);
-    }
-    50% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-        transform: translate(15px, -20px) scale(1.2);
-    }
-}
-
-.zzz-effect {
-    animation: floatUpZzz 2.5s ease-in-out infinite;
 }
