@@ -8,9 +8,9 @@ const TARGET_TRACK_IDS = [
     '5jC3lBWBcVdby76sqWwqAE'
 ];
 
-// นำเข้าการตั้งค่า Firebase จากไฟล์แยก (ต้องมั่นใจว่าไฟล์ firebase-config.js อยู่ในโฟลเดอร์เดียวกัน)
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+// แก้ไขบรรทัด import Firebase ทั้งหมดเป็นแบบดึงผ่าน CDN URL ตรงๆ
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 // เริ่มต้นใช้งาน Firebase Modular SDK
