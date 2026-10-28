@@ -100,4 +100,155 @@ window.onload = async () => {
     if (accessToken) {
         loginBtn.classList.add('hidden');
         playerSection.classList.remove('hidden');
-        statusText.textContent = "
+        statusText.textContent = "เชื่อมต่อสำเร็จ! กำลังตรวจสอบข้อมูลโปรไฟล์...";
+        
+        await fetchUserProfile(accessToken);
+    }
+};
+
+// [ข้อ 3] ดึงข้อมูลโปรไฟล์ผู้ใช้และแยกฐานข้อมูลตาม Spotify ID ของแต่ละ User
+async function fetchUserProfile(token) {
+    try {
+        const response = await fetch('https://api.spotify.com/v1/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            currentSpotifyId = data.id; // ใช้ Spotify ID เป็นตัวแยก User
+            
+            document.getElementById('user-name').textContent = data.display_name || "Spotify User";
+            if (data.images && data.images.length > 0) {
+                document.getElementById('user-avatar').src = data.images[0].url;
+            }
+            document.getElementById('user-profile').classList.remove('hidden');
+
+            // [ข้อ 3] โหลดสถิติเดิมของ User นี้จาก Firestore กลับมาแสดงผลทันที
+            await loadUserDataFromFirestore(currentSpotifyId, data.display_name);
+
+            statusText.textContent = "พร้อมแล้ว! กรุณาเปิดเพลง Insomnia - RIIZE บน Spotify";
+            startCheckingMusic();
+
+        } else {
+            localStorage.removeItem('spotify_access_token');
+            loginBtn.classList.remove('hidden');
+            statusText.textContent = "Token หมดอายุ กรุณาล็อกอินใหม่อีกครั้ง";
+        }
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+    }
+}
+
+// ฟังก์ชันโหลดข้อมูลสะสมเดิมจาก Firestore (แยกตาม doc(spotifyId))
+async function loadUserDataFromFirestore(spotifyId, displayName) {
+    const userRef = doc(db, 'insomnia_sleep_users', spotifyId);
+    try {
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists()) {
+            totalElapsedSeconds = docSnap.data().total_sleep_seconds || 0;
+        } else {
+            totalElapsedSeconds = 0;
+            await setDoc(userRef, {
+                spotify_id: spotifyId,
+                name: displayName,
+                total_sleep_seconds: 0,
+                updated_at: serverTimestamp()
+            });
+        }
+        updateTimerDisplay(totalElapsedSeconds);
+    } catch (error) {
+        console.error("Error loading user data from Firestore:", error);
+    }
+}
+
+// [ข้อ 1 & 2] ฟังก์ชันเช็กเพลงปัจจุบัน บังคับเฉพาะเพลง Insomnia เท่านั้น
+function startCheckingMusic() {
+    setInterval(async () => {
+        try {
+            const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+
+            if (response.status === 204 || response.status > 400) {
+                statusText.textContent = "ไม่ได้เปิดเพลงอยู่บน Spotify (หยุดจับเวลา)";
+                stopTimer();
+                return;
+            }
+
+            const data = await response.json();
+            if (data && data.item) {
+                const currentTrackId = data.item.id;
+                const currentTrackName = data.item.name;
+                const artistName = data.item.artists.map(a => a.name).join(', ');
+
+                trackNameEl.textContent = `${currentTrackName} - ${artistName}`;
+
+                // เช็กว่าเป็นเพลง Insomnia - RIIZE (ID: 5jC3lBWBcVdby76sqWwqAE) หรือไม่
+                if (currentTrackId === TARGET_TRACK_ID) {
+                    statusText.textContent = "กำลังฟัง Insomnia - RIIZE... กำลังสะสมเวลานอนฝันดี 💤";
+                    if (!isTracking) {
+                        startTimer();
+                    }
+                } else {
+                    // [ข้อ 1] ถ้าไม่ใช่เพลงนี้ จะไม่นับเวลาและหยุดจับทันที
+                    statusText.textContent = "กำลังฟังเพลงอื่นอยู่ (ระบบนับเฉพาะเพลง Insomnia เท่านั้น)";
+                    stopTimer();
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching player state:", error);
+        }
+    }, 5000);
+}
+
+// [ข้อ 2] ระบบจับเวลาและบันทึกสะสมทับข้อมูลเดิมใน Firestore แบบเรียลไทม์
+function startTimer() {
+    if (isTracking) return;
+    isTracking = true;
+
+    timerInterval = setInterval(async () => {
+        totalElapsedSeconds++;
+        updateTimerDisplay(totalElapsedSeconds);
+
+        if (currentSpotifyId) {
+            try {
+                const userRef = doc(db, 'insomnia_sleep_users', currentSpotifyId);
+                await setDoc(userRef, {
+                    total_sleep_seconds: totalElapsedSeconds,
+                    updated_at: serverTimestamp()
+                }, { merge: true });
+            } catch (error) {
+                console.error("Error updating sleep time to Firestore:", error);
+            }
+        }
+    }, 1000);
+}
+
+function stopTimer() {
+    isTracking = false;
+    clearInterval(timerInterval);
+}
+
+function updateTimerDisplay(totalSeconds) {
+    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    const seconds = String(totalSeconds % 60).padStart(2, '0');
+    
+    sleepTimerEl.textContent = `${hours}:${minutes}:${seconds}`;
+}
+
+// [ข้อ 3] จัดการปุ่มแชร์สถิติทั้งหมดไปที่ X (Twitter)
+const shareXBtn = document.getElementById('share-x-btn');
+if (shareXBtn) {
+    shareXBtn.addEventListener('click', () => {
+        const timerText = sleepTimerEl.textContent;
+        const currentUrl = window.location.href;
+
+        const tweetMessage = encodeURIComponent(
+            `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE ไปแล้ว ${timerText} 💤✨\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
+        );
+
+        const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;
+        window.open(twitterShareUrl, '_blank');
+    });
+}
