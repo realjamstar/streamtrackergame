@@ -2,21 +2,7 @@ let timerInterval = null;
 let totalElapsedSeconds = 0; 
 let selectedCharacter = null; 
 let playerName = "";
-
-// ตัวแปรควบคุมเครื่องเล่น
-let spotifyController = null;
-let isSpotifyApiLoaded = false;
-let ytPlayer = null;
-let isYTPlayerInitialized = false;
-
-// สถานะการเล่นของแต่ละตัวเล่น เพื่อเช็กว่าหยุดเล่นทั้งคู่หรือยัง
-let isSpotifyPlaying = false;
-let isYTPlaying = false;
-
-// 📌 กำหนด YouTube Video ID ของเพลง Insomnia ที่อนุญาตให้นับเวลา
-const ALLOWED_YT_TRACK_IDS = [
-    "5jC3lBWBcVdby76sqWwqAE" // เปลี่ยนเป็น Video ID จริงบน YouTube
-];
+let isPlaying = false; // เช็กสถานะว่ากำลังกดเล่นอยู่หรือไม่
 
 const nameInputSection = document.getElementById('name-input-section');
 const playerNameInput = document.getElementById('player-name-input');
@@ -32,6 +18,11 @@ const sleepTimerEl = document.getElementById('sleep-timer');
 const selectedCharImg = document.getElementById('selected-char-img');
 const pixelTimerBox = document.getElementById('pixel-timer-box');
 const backToSelectBtn = document.getElementById('back-to-select-btn');
+
+// ปุ่ม Play/Pause บนหน้าเว็บ
+const playPauseBtn = document.getElementById('play-pause-btn');
+const playPauseIcon = document.getElementById('play-pause-icon');
+const playPauseText = document.getElementById('play-pause-text');
 
 window.onload = () => {
     totalElapsedSeconds = parseInt(localStorage.getItem('insomnia_total_seconds')) || 0;
@@ -66,7 +57,9 @@ window.onload = () => {
 
     if (editNameBtn) {
         editNameBtn.addEventListener('click', () => {
-            stopTimerCompletely();
+            stopTimer();
+            isPlaying = false;
+            updatePlayPauseButtonUI();
             playerSection.classList.add('hidden');
             characterSelectSection.classList.add('hidden');
             userProfile.classList.add('hidden');
@@ -98,10 +91,27 @@ window.onload = () => {
 
     if (backToSelectBtn) {
         backToSelectBtn.addEventListener('click', () => {
-            stopTimerCompletely();
+            stopTimer(); 
+            isPlaying = false;
+            updatePlayPauseButtonUI();
             playerSection.classList.add('hidden');
             characterSelectSection.classList.remove('hidden');
             statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
+        });
+    }
+
+    // ฟังก์ชันกดปุ่ม Play/Pause เพื่อเริ่มหรือหยุดจับเวลา
+    if (playPauseBtn) {
+        playPauseBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+                startTimer();
+                statusText.textContent = `${playerName} กำลังฟังเพลงกับ ${selectedCharacter} 💤`;
+            } else {
+                stopTimer();
+                statusText.textContent = `${playerName} หยุดฟังเพลง (หยุดจับเวลา)`;
+            }
+            updatePlayPauseButtonUI();
         });
     }
 };
@@ -115,113 +125,23 @@ function activateCharacterCard(charName, imgUrl) {
 
     characterSelectSection.classList.add('hidden');
     playerSection.classList.remove('hidden');
-    statusText.textContent = `${playerName} พร้อมจำศีลกับ ${selectedCharacter} (กด Play เพลงด้านล่าง)`;
-
-    // โหลด Spotify Embed Player
-    if (!isSpotifyApiLoaded) {
-        initSpotifyEmbed();
-        isSpotifyApiLoaded = true;
-    }
-
-    // โหลด YouTube Player
-    if (!isYTPlayerInitialized) {
-        loadYouTubeAPI();
-        isYTPlayerInitialized = true;
-    }
+    
+    // ตั้งค่าเริ่มต้นเมื่อเข้ามาหน้าเล่นเพลง (ยังไม่นับ จนกว่าจะกดปุ่ม Play)
+    stopTimer();
+    isPlaying = false;
+    updatePlayPauseButtonUI();
+    statusText.textContent = `${playerName} พร้อมแล้ว! กดปุ่ม Play ด้านล่างเพื่อเริ่มนับเวลา`;
 }
 
-// 1. ฟังก์ชันจัดการ Spotify Embed
-function initSpotifyEmbed() {
-    window.onSpotifyIframeApiReady = (IFrameAPI) => {
-        const element = document.getElementById('spotify-embed-container');
-        const options = {
-            width: '100%',
-            height: '80',
-            uri: 'spotify:track:5jC3lBWBcVdby76sqWwqAE'
-        };
-        
-        const callback = (EmbedController) => {
-            spotifyController = EmbedController;
-            EmbedController.addListener('playback_update', e => {
-                if (e.data.isPaused) {
-                    isSpotifyPlaying = false;
-                    checkPlaybackStatus();
-                } else {
-                    isSpotifyPlaying = true;
-                    checkPlaybackStatus();
-                }
-            });
-        };
-
-        IFrameAPI.createIframe(element, options, callback);
-    };
-
-    if (!document.getElementById('spotify-iframe-api-script')) {
-        const scriptTag = document.createElement('script');
-        scriptTag.id = 'spotify-iframe-api-script';
-        scriptTag.src = "https://open.spotify.com/embed/iframe-api/v1";
-        scriptTag.async = true;
-        document.body.appendChild(scriptTag);
-    }
-}
-
-// 2. ฟังก์ชันจัดการ YouTube Player
-function loadYouTubeAPI() {
-    if (!window.YT) {
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+function updatePlayPauseButtonUI() {
+    if (isPlaying) {
+        playPauseBtn.className = "w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold py-2.5 px-4 rounded-xl transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-md";
+        playPauseIcon.textContent = "⏸️";
+        playPauseText.textContent = "หยุดพักการฟังเพลง (Pause)";
     } else {
-        initYTPlayer();
-    }
-}
-
-window.onYouTubeIframeAPIReady = function() {
-    initYTPlayer();
-};
-
-function initYTPlayer() {
-    ytPlayer = new YT.Player('youtube-player', {
-        height: '140',
-        width: '100%',
-        videoId: ALLOWED_YT_TRACK_IDS[0],
-        playerVars: {
-            'autoplay': 0,
-            'controls': 1,
-            'loop': 1,
-            'playlist': ALLOWED_YT_TRACK_IDS.join(',')
-        },
-        events: {
-            'onStateChange': onYTPlayerStateChange
-        }
-    });
-}
-
-function onYTPlayerStateChange(event) {
-    if (event.data === YT.PlayerState.PLAYING) {
-        const currentVideoId = ytPlayer.getVideoData().video_id;
-        if (ALLOWED_YT_TRACK_IDS.includes(currentVideoId)) {
-            isYTPlaying = true;
-            checkPlaybackStatus();
-        } else {
-            isYTPlaying = false;
-            checkPlaybackStatus();
-        }
-    } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
-        isYTPlaying = false;
-        checkPlaybackStatus();
-    }
-}
-
-// 3. ระบบรวมเช็กสถานะการเล่นเพลง (ถ้าตัวใดตัวหนึ่งเล่นอยู่ ให้เริ่มนับเวลา)
-function checkPlaybackStatus() {
-    if (isSpotifyPlaying || isYTPlaying) {
-        startTimer();
-        statusText.textContent = `${playerName} กำลังฟังเพลงกับ ${selectedCharacter} 💤`;
-    } else {
-        stopTimer();
-        statusText.textContent = `${playerName} หยุดฟังเพลง (หยุดจับเวลา)`;
+        playPauseBtn.className = "w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-md";
+        playPauseIcon.textContent = "▶️";
+        playPauseText.textContent = "กดเพื่อเริ่มฟังและนับเวลา";
     }
 }
 
@@ -238,12 +158,6 @@ function startTimer() {
 function stopTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
-}
-
-function stopTimerCompletely() {
-    stopTimer();
-    isSpotifyPlaying = false;
-    isYTPlaying = false;
 }
 
 function updateTimerDisplay(totalSeconds) {
