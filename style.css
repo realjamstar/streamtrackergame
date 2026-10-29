@@ -48,11 +48,11 @@ body {
 
 /* 📌 พิกัดตำแหน่งช่อง Bubble คำพูดของการ์ดแต่ละเมมเบอร์ (ปรับ top / left ตรงนี้ได้ถ้าต้องการขยับ) */
 .pos-shotaro { top: 22.5%; left: 35.5%; }
-.pos-eunseok { top: 12.5%; left: 21.0%; }
-.pos-sungchan { top: 20.0%; left: 47.0%; }
-.pos-wonbin { top: 20.0%; left: 63.5%; }
-.pos-sohee { top: 24.5%; left: 21.0%; }
-.pos-anton { top: 13.0%; left: 23.0%; }
+.pos-eunseok { top: 11.0%; left: 17.5.0%; }
+.pos-sungchan { top: 18.0%; left: 46.0%; }
+.pos-wonbin { top: 16.0%; left: 52.5%; }
+.pos-sohee { top: 21.0%; left: 19.0%; }
+.pos-anton { top: 11.0%; left: 17.5%; }
 
 .char-select-btn.selected {
     border-color: #f472b6 !important;
