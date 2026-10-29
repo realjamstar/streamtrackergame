@@ -3,15 +3,12 @@ const CLIENT_ID = '718b9cea339949308f3f8f3f12a81d85';
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = 'user-read-playback-state user-read-currently-playing user-read-private';
 
-// ** กำหนดเฉพาะ Spotify ID ของเพลง Insomnia - RIIZE เพลงเดียวเท่านั้น **
 const TARGET_TRACK_ID = '5jC3lBWBcVdby76sqWwqAE';
 
-// นำเข้า Firebase Modular SDK จาก CDN
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
-// เริ่มต้นใช้งาน Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -20,16 +17,18 @@ let timerInterval = null;
 let isTracking = false;
 let currentSpotifyId = null; 
 let totalElapsedSeconds = 0; 
-let selectedCharacter = "SHOTARO"; // ตัวละครเริ่มต้น
+let selectedCharacter = null; 
 
 const loginBtn = document.getElementById('login-btn');
+const characterSelectSection = document.getElementById('character-select-section');
 const playerSection = document.getElementById('player-section');
 const statusText = document.getElementById('status-text');
 const trackNameEl = document.getElementById('track-name');
 const sleepTimerEl = document.getElementById('sleep-timer');
 const selectedCharImg = document.getElementById('selected-char-img');
+const pixelTimerBox = document.getElementById('pixel-timer-box');
+const backToSelectBtn = document.getElementById('back-to-select-btn');
 
-// ฟังก์ชันสร้างรหัสสุ่มสำหรับ PKCE
 function generateRandomString(length) {
     let text = '';
     let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -49,7 +48,6 @@ async function generateCodeChallenge(codeVerifier) {
         .replace(/=+$/, '');
 }
 
-// ระบบจัดการ Login (PKCE)
 loginBtn.addEventListener('click', async () => {
     const codeVerifier = generateRandomString(64);
     localStorage.setItem('code_verifier', codeVerifier);
@@ -68,7 +66,6 @@ loginBtn.addEventListener('click', async () => {
     window.location.href = authUrl.toString();
 });
 
-// ตรวจสอบ Code หลังจาก Spotify Redirect กลับมา
 window.onload = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
@@ -101,49 +98,41 @@ window.onload = async () => {
 
     if (accessToken) {
         loginBtn.classList.add('hidden');
-        playerSection.classList.remove('hidden');
-        statusText.textContent = "เชื่อมต่อสำเร็จ! กำลังตรวจสอบข้อมูลโปรไฟล์...";
-        
+        statusText.textContent = "เชื่อมต่อสำเร็จ! กรุณาเลือกตัวละครที่ต้องการ";
         await fetchUserProfile(accessToken);
     }
 
-    // จัดการการคลิกเลือกตัวละคร 6 ตัว
-    const charButtons = document.querySelectorAll('.char-btn');
-    charButtons.forEach(btn => {
-        if (btn.getAttribute('data-name') === selectedCharacter) {
-            btn.classList.add('selected');
-        }
-
+    // [ข้อ 2] จัดการคลิกเลือกตัวการ์ตูนเพื่อเปิดหน้าการ์ดแสดงผล
+    const charSelectBtns = document.querySelectorAll('.char-select-btn');
+    charSelectBtns.forEach(btn => {
         btn.addEventListener('click', async () => {
-            charButtons.forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-
             selectedCharacter = btn.getAttribute('data-name');
             const imgUrl = btn.getAttribute('data-img');
 
-            selectedCharImg.src = imgUrl;
+            activateCharacterCard(selectedCharacter, imgUrl);
 
-            // อัปเดตตำแหน่งพิกัดกล่องเวลาตามตัวละครนั้นๆ อัตโนมัติ
-            const timerContainer = document.querySelector('.pixel-timer-container');
-            if (timerContainer) {
-                timerContainer.className = "pixel-timer-container";
-                timerContainer.classList.add(`pos-${selectedCharacter.toLowerCase()}`);
-            }
-
-            // บันทึกตัวละครที่เลือกกลายลงใน Firebase ของ User นั้นๆ ทันที
+            // บันทึกตัวละครลง Firebase
             if (currentSpotifyId) {
                 try {
                     const userRef = doc(db, 'insomnia_sleep_users', currentSpotifyId);
                     await setDoc(userRef, { selected_character: selectedCharacter }, { merge: true });
                 } catch (error) {
-                    console.error("Error saving selected character:", error);
+                    console.error("Error saving character:", error);
                 }
             }
         });
     });
+
+    // ปุ่มย้อนกลับไปหน้าเลือกตัวละคร
+    if (backToSelectBtn) {
+        backToSelectBtn.addEventListener('click', () => {
+            playerSection.classList.add('hidden');
+            characterSelectSection.classList.remove('hidden');
+            statusText.textContent = "เลือกตัวละครของคุณเพื่อเริ่มจำศีล";
+        });
+    }
 };
 
-// ดึงข้อมูลโปรไฟล์ผู้ใช้และแยกฐานข้อมูลตาม Spotify ID
 async function fetchUserProfile(token) {
     try {
         const response = await fetch('https://api.spotify.com/v1/me', {
@@ -162,9 +151,6 @@ async function fetchUserProfile(token) {
 
             await loadUserDataFromFirestore(currentSpotifyId, data.display_name);
 
-            statusText.textContent = "พร้อมแล้ว! กรุณาเปิดเพลง Insomnia - RIIZE บน Spotify";
-            startCheckingMusic();
-
         } else {
             localStorage.removeItem('spotify_access_token');
             loginBtn.classList.remove('hidden');
@@ -175,7 +161,6 @@ async function fetchUserProfile(token) {
     }
 }
 
-// ฟังก์ชันโหลดข้อมูลสะสมเดิมจาก Firestore (รวมถึงตัวละครที่เคยเลือกไว้)
 async function loadUserDataFromFirestore(spotifyId, displayName) {
     const userRef = doc(db, 'insomnia_sleep_users', spotifyId);
     try {
@@ -185,19 +170,17 @@ async function loadUserDataFromFirestore(spotifyId, displayName) {
             const savedChar = docSnap.data().selected_character;
             if (savedChar) {
                 selectedCharacter = savedChar;
-                const targetBtn = document.querySelector(`.char-btn[data-name="${selectedCharacter}"]`);
+                // หา URL ภาพจากปุ่มเลือก
+                const targetBtn = document.querySelector(`.char-select-btn[data-name="${selectedCharacter}"]`);
                 if (targetBtn) {
-                    document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
-                    targetBtn.classList.add('selected');
-                    selectedCharImg.src = targetBtn.getAttribute('data-img');
-                    
-                    // ปรับตำแหน่งพิกัดตามตัวละครที่เซฟไว้
-                    const timerContainer = document.querySelector('.pixel-timer-container');
-                    if (timerContainer) {
-                        timerContainer.className = "pixel-timer-container";
-                        timerContainer.classList.add(`pos-${selectedCharacter.toLowerCase()}`);
-                    }
+                    activateCharacterCard(selectedCharacter, targetBtn.getAttribute('data-img'));
+                } else {
+                    characterSelectSection.classList.remove('hidden');
+                    statusText.textContent = "กรุณาเลือกตัวละครของคุณ";
                 }
+            } else {
+                characterSelectSection.classList.remove('hidden');
+                statusText.textContent = "กรุณาเลือกตัวละครของคุณ";
             }
         } else {
             totalElapsedSeconds = 0;
@@ -208,14 +191,30 @@ async function loadUserDataFromFirestore(spotifyId, displayName) {
                 selected_character: "SHOTARO",
                 updated_at: serverTimestamp()
             });
+            characterSelectSection.classList.remove('hidden');
+            statusText.textContent = "กรุณาเลือกตัวละครของคุณ";
         }
         updateTimerDisplay(totalElapsedSeconds);
+        startCheckingMusic();
     } catch (error) {
-        console.error("Error loading user data from Firestore:", error);
+        console.error("Error loading user data:", error);
     }
 }
 
-// ฟังก์ชันเช็กเพลงปัจจุบัน บังคับเฉพาะเพลง Insomnia เท่านั้น
+// [ข้อ 2 & 3] ฟังก์ชันแสดงหน้าการ์ดและเซ็ตตำแหน่งพิกัด Bubble
+function activateCharacterCard(charName, imgUrl) {
+    selectedCharacter = charName;
+    selectedCharImg.src = imgUrl;
+
+    // เซ็ตคลาสพิกัดเฉพาะตัวละครนั้นๆ
+    pixelTimerBox.className = "pixel-timer-container";
+    pixelTimerBox.classList.add(`pos-${selectedCharacter.toLowerCase()}`);
+
+    characterSelectSection.classList.add('hidden');
+    playerSection.classList.remove('hidden');
+    statusText.textContent = `กำลังจำศีลกับ ${selectedCharacter} 💤`;
+}
+
 function startCheckingMusic() {
     setInterval(async () => {
         try {
@@ -253,7 +252,6 @@ function startCheckingMusic() {
     }, 5000);
 }
 
-// ระบบจับเวลาและบันทึกสะสมลง Firestore แบบเรียลไทม์
 function startTimer() {
     if (isTracking) return;
     isTracking = true;
@@ -289,15 +287,16 @@ function updateTimerDisplay(totalSeconds) {
     sleepTimerEl.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
-// จัดการปุ่มแชร์สถิติไปที่ X (Twitter)
+// [ข้อ 4] จัดการปุ่มแชร์สถิติและแนบลิงก์รูปภาพการ์ดไปที่ X
 const shareXBtn = document.getElementById('share-x-btn');
 if (shareXBtn) {
     shareXBtn.addEventListener('click', () => {
         const timerText = sleepTimerEl.textContent;
         const currentUrl = window.location.href;
+        const cardImgUrl = selectedCharImg.src; // ดึงลิงก์รูปภาพการ์ดตัวละครที่กำลังแสดงอยู่
 
         const tweetMessage = encodeURIComponent(
-            `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE โดยมี ${selectedCharacter} มาอยู่เป็นเพื่อน ไปแล้ว ${timerText} 💤✨\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
+            `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE โดยมี ${selectedCharacter} มาอยู่เป็นเพื่อน ไปแล้ว ${timerText} 💤✨\n\nการ์ดจำศีลของฉัน: ${cardImgUrl}\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
         );
 
         const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;
