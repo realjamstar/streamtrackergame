@@ -28,7 +28,7 @@ window.onload = () => {
         userProfile.classList.remove('hidden');
         nameInputSection.classList.add('hidden');
         characterSelectSection.classList.remove('hidden');
-        statusText.textContent = "เลือกเมมเบอร์ที่คุณอยากให้มาอยู่เป็นเพื่อนจำศีล";
+        statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
     }
 
     startNameBtn.addEventListener('click', () => {
@@ -45,7 +45,7 @@ window.onload = () => {
         userProfile.classList.remove('hidden');
         nameInputSection.classList.add('hidden');
         characterSelectSection.classList.remove('hidden');
-        statusText.textContent = "เลือกเมมเบอร์ที่คุณอยากให้มาอยู่เป็นเพื่อนจำศีล";
+        statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
     });
 
     const charSelectBtns = document.querySelectorAll('.char-select-btn');
@@ -64,7 +64,7 @@ window.onload = () => {
             stopTimer(); // หยุดเวลาชั่วคราวเมื่อกลับไปเลือกตัวละคร
             playerSection.classList.add('hidden');
             characterSelectSection.classList.remove('hidden');
-            statusText.textContent = "เลือกเมมเบอร์ที่คุณอยากให้มาอยู่เป็นเพื่อนจำศีล";
+            statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
         });
     }
 };
@@ -78,7 +78,7 @@ function activateCharacterCard(charName, imgUrl) {
 
     characterSelectSection.classList.add('hidden');
     playerSection.classList.remove('hidden');
-    statusText.textContent = `${playerName} กำลังจำศีลกับ ${selectedCharacter} 💤`;
+    statusText.textContent = `${playerName} กำลังฟังเพลงกับ ${selectedCharacter} 💤`;
 }
 
 function startTimer() {
