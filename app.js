@@ -287,15 +287,16 @@ if (shareXBtn) {
     shareXBtn.addEventListener('click', async () => {
         const timerText = sleepTimerEl.textContent;
         const currentUrl = window.location.href;
-        const cardContainer = document.getElementById('share-card-container');
+        const cardContainer = document.getElementById('share-card-container'); // จะแคปเจอร์เฉพาะกล่องการ์ดรูปภาพเท่านั้น
 
         statusText.textContent = "กำลังสร้างรูปภาพการ์ดของคุณ...";
 
         try {
             const canvas = await html2canvas(cardContainer, {
-                scale: 2,
+                scale: 2, // เพิ่มความคมชัด
                 useCORS: true,
-                backgroundColor: null
+                allowTaint: true,
+                backgroundColor: null // ให้พื้นหลังโปร่งใสตามขอบมนของการ์ด
             });
 
             const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
@@ -311,7 +312,7 @@ if (shareXBtn) {
             statusText.textContent = `บันทึกภาพการ์ดเรียบร้อย! กำลังเปิด X... 💤`;
 
             const tweetMessage = encodeURIComponent(
-                `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE โดยมี ${selectedCharacter} มาอยู่เป็นเพื่อน ไปแล้ว ${timerText} นาที 💤✨\n\n(บันทึกภาพการ์ดแล้ว อย่าลืมแนบรูปภาพลงในโพสต์นะ!)\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
+                `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE โดยมี ${selectedCharacter} มาอยู่เป็นเพื่อน ไปแล้ว ${timerText} นาที 💤✨\n\n(บันทึกภาพการ์ดแล้ว อย่าลืมแนบรูปภาพลงในโพสต์นะ!)\n\nมาร่วมฟังเพลงและสะสมเวลาฝันดีไปด้วยกันที่:`
             );
 
             const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;

@@ -64,34 +64,35 @@
 
         <!-- หน้าที่ 2: แสดงผลการ์ดที่เลือกพร้อมตัวเลขนับเวลาในช่อง Bubble -->
         <div id="player-section" class="hidden mt-4 space-y-4">
-            
-            <button id="back-to-select-btn" class="text-xs text-purple-300 hover:text-pink-300 underline mb-1">
-                ← กลับไปเลือกเมมเบอร์อื่น
-            </button>
+    
+    <button id="back-to-select-btn" class="text-xs text-purple-300 hover:text-pink-300 underline mb-1">
+        ← กลับไปเลือกเมมเบอร์อื่น
+    </button>
 
-            <div class="bg-purple-950/20 p-2.5 rounded-xl border border-purple-500/10">
-                <p class="text-[11px] text-purple-300">กำลังฟังเพลง:</p>
-                <p id="track-name" class="text-sm font-semibold text-pink-300 truncate">-</p>
-            </div>
+    <div class="bg-purple-950/20 p-2.5 rounded-xl border border-purple-500/10">
+        <p class="text-[11px] text-purple-300">กำลังฟังเพลง:</p>
+        <p id="track-name" class="text-sm font-semibold text-pink-300 truncate">-</p>
+        
+        <!-- 📌 เพิ่มปุ่มลัดเปิดเพลง Insomnia ตรงนี้ -->
+        <a href="https://open.spotify.com/track/5jC3lBWBcVdby76sqWwqAE" target="_blank" class="mt-2 inline-flex items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition duration-200 space-x-1.5 shadow-sm">
+            <span>🎵 เปิดเพลง Insomnia บน Spotify</span>
+        </a>
+    </div>
 
-            <!-- กล่องการ์ดที่จะนำไปแสดงผลและแคปเจอร์ภาพพร้อมแชร์ -->
-            <div id="share-card-container" class="night-pastel-inner p-2 rounded-2xl border border-purple-500/20 space-y-3">
-                
-                <div class="relative inline-block w-full max-w-[320px] mx-auto">
-                    <!-- รูปการ์ดพื้นหลังของแต่ละเมมเบอร์ -->
-                    <img id="selected-char-img" src="" alt="Sleepy Card" class="w-full h-auto object-contain rounded-xl shadow-md">
-                    
-                    <!-- กล่องแสดงเวลานับที่จะไปทับบนช่องสีขาว (Bubble คำพูด) -->
-                    <div id="pixel-timer-box" class="pixel-timer-container">
-                        <p id="sleep-timer" class="pixel-font text-slate-900 font-bold">00:00:00</p>
-                    </div>
-                </div>
-
-                <button id="share-x-btn" class="w-full bg-slate-900 hover:bg-black border border-purple-500/30 text-white font-bold py-2.5 px-4 rounded-full transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-md">
-                    <span>𝕏 บันทึกภาพการ์ดและแชร์ไปที่ X</span>
-                </button>
-            </div>
+    <!-- กล่องการ์ดตัวละครและปุ่มแชร์ -->
+    <div id="share-card-container" class="relative inline-block w-full max-w-[320px] mx-auto">
+        <img id="selected-char-img" src="" alt="Sleepy Card" class="w-full h-auto object-contain rounded-xl shadow-md" crossorigin="anonymous">
+        
+        <div id="pixel-timer-box" class="pixel-timer-container">
+            <p id="sleep-timer" class="pixel-font text-slate-900 font-bold">00:00:00</p>
         </div>
+    </div>
+
+    <button id="share-x-btn" class="w-full bg-slate-900 hover:bg-black border border-purple-500/30 text-white font-bold py-2.5 px-4 rounded-full transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-md">
+        <span>𝕏 บันทึกภาพการ์ดและแชร์ไปที่ X</span>
+    </button>
+</div>
+</div>
     </div>
 
     <script type="module" src="app.js"></script>
