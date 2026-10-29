@@ -2,10 +2,17 @@ let timerInterval = null;
 let totalElapsedSeconds = 0; 
 let selectedCharacter = null; 
 let playerName = "";
+
+// ตัวควบคุม API
+let spotifyController = null;
+let isSpotifyPlaying = false;
+
 let ytPlayer = null;
 let isYTInitialized = false;
+let isYTPlaying = false;
 
 const CORRECT_YT_ID = "RgkoXU4BlOE"; // YouTube ID ที่ถูกต้อง
+const SPOTIFY_TRACK_URI = "spotify:track:5jC3lBWBcVdby76sqWwqAE";
 
 const nameInputSection = document.getElementById('name-input-section');
 const playerNameInput = document.getElementById('player-name-input');
@@ -61,8 +68,7 @@ window.onload = () => {
 
     if (editNameBtn) {
         editNameBtn.addEventListener('click', () => {
-            stopTimer();
-            if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+            resetAllPlayback();
             playerSection.classList.add('hidden');
             characterSelectSection.classList.add('hidden');
             userProfile.classList.add('hidden');
@@ -82,7 +88,7 @@ window.onload = () => {
         });
     }
 
-    // ระบบสลับแท็บเครื่องเล่น (Spotify / YouTube)
+    // ระบบสลับแท็บเครื่องเล่น
     if (tabSpotify && tabYoutube) {
         tabSpotify.addEventListener('click', () => {
             tabSpotify.className = "py-1.5 px-3 rounded-lg text-xs font-bold bg-pink-600 text-white transition shadow-sm";
@@ -97,7 +103,6 @@ window.onload = () => {
             youtubeBox.classList.remove('hidden');
             spotifyBox.classList.add('hidden');
 
-            // โหลด YouTube Player เมื่อกดเลือกแท็บ YouTube ครั้งแรก
             if (!isYTInitialized) {
                 initYTPlayer();
                 isYTInitialized = true;
@@ -117,13 +122,15 @@ window.onload = () => {
 
     if (backToSelectBtn) {
         backToSelectBtn.addEventListener('click', () => {
-            stopTimer(); 
-            if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+            resetAllPlayback();
             playerSection.classList.add('hidden');
             characterSelectSection.classList.remove('hidden');
             statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
         });
     }
+
+    // เริ่มต้นโหลด Spotify Embed API
+    initSpotifyEmbed();
 };
 
 function activateCharacterCard(charName, imgUrl) {
@@ -135,10 +142,38 @@ function activateCharacterCard(charName, imgUrl) {
 
     characterSelectSection.classList.add('hidden');
     playerSection.classList.remove('hidden');
-    statusText.textContent = `${playerName} พร้อมจำศีลกับ ${selectedCharacter} (เลือกเล่นเพลงผ่าน Spotify หรือ YouTube ได้เลย)`;
+    statusText.textContent = `${playerName} พร้อมจำศีลกับ ${selectedCharacter} (กด Play เพลงที่ชอบได้เลย)`;
 }
 
-// สร้าง YouTube Player ควบคุมผ่าน API
+// 1. Spotify Embed API ควบคุมการเล่นอัตโนมัติ
+window.onSpotifyIframeApiReady = (IFrameAPI) => {
+    const element = document.getElementById('spotify-embed-container');
+    const options = {
+        width: '100%',
+        height: '80',
+        uri: SPOTIFY_TRACK_URI
+    };
+    
+    const callback = (EmbedController) => {
+        spotifyController = EmbedController;
+        EmbedController.addListener('playback_update', e => {
+            if (e.data.isPaused) {
+                isSpotifyPlaying = false;
+            } else {
+                isSpotifyPlaying = true;
+            }
+            evaluateTimerState();
+        });
+    };
+
+    IFrameAPI.createIframe(element, options, callback);
+};
+
+// 2. YouTube Player API ควบคุมการเล่นอัตโน0มัติ
+window.onYouTubeIframeAPIReady = function() {
+    // จะถูกเรียกเมื่อผู้ใช้กดแท็บ YouTube หรือเริ่มต้น
+};
+
 function initYTPlayer() {
     ytPlayer = new YT.Player('youtube-player', {
         height: '130',
@@ -156,18 +191,35 @@ function initYTPlayer() {
     });
 }
 
-// ดักจับการกด Play/Pause จาก YouTube จริงๆ
 function onYTPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         const currentVideoId = ytPlayer.getVideoData().video_id;
         if (currentVideoId === CORRECT_YT_ID) {
-            startTimer();
-            statusText.textContent = `${playerName} กำลังฟังเพลงบน YouTube กับ ${selectedCharacter} 💤`;
+            isYTPlaying = true;
         }
     } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+        isYTPlaying = false;
+    }
+    evaluateTimerState();
+}
+
+// ประเมินสถานะการนับเวลารวม (ถ้ากด Play ฝั่งไหน ให้เริ่มนับเวลาทันที)
+function evaluateTimerState() {
+    if (isSpotifyPlaying || isYTPlaying) {
+        startTimer();
+        statusText.textContent = `${playerName} กำลังฟังเพลงกับ ${selectedCharacter} 💤`;
+    } else {
         stopTimer();
         statusText.textContent = `${playerName} หยุดฟังเพลง (หยุดจับเวลา)`;
     }
+}
+
+function resetAllPlayback() {
+    stopTimer();
+    isSpotifyPlaying = false;
+    isYTPlaying = false;
+    if (spotifyController && typeof spotifyController.pause === 'function') spotifyController.pause();
+    if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
 }
 
 function startTimer() {
