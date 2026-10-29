@@ -2,6 +2,11 @@ let timerInterval = null;
 let totalElapsedSeconds = 0; 
 let selectedCharacter = null; 
 let playerName = "";
+let ytPlayer = null;
+let isPlayerInitialized = false;
+
+// 📌 กำหนด YouTube Video ID ของเพลง Insomnia ที่อนุญาตให้นับเวลา (สามารถใส่เพิ่มได้หลายเพลงในรูปแบบอาเรย์)
+const ALLOWED_TRACK_IDS = [ "RgkoXU4BlOE" ];
 
 const nameInputSection = document.getElementById('name-input-section');
 const playerNameInput = document.getElementById('player-name-input');
@@ -19,11 +24,9 @@ const pixelTimerBox = document.getElementById('pixel-timer-box');
 const backToSelectBtn = document.getElementById('back-to-select-btn');
 
 window.onload = () => {
-    // โหลดเวลาสะสมเดิมที่เคยเก็บไว้
     totalElapsedSeconds = parseInt(localStorage.getItem('insomnia_total_seconds')) || 0;
     updateTimerDisplay(totalElapsedSeconds);
 
-    // ตรวจสอบชื่อผู้เล่นเดิมใน LocalStorage
     const savedName = localStorage.getItem('insomnia_player_name');
     if (savedName) {
         playerName = savedName;
@@ -34,7 +37,6 @@ window.onload = () => {
         statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
     }
 
-    // กดปุ่มเริ่มหลังจากพิมพ์ชื่อ
     startNameBtn.addEventListener('click', () => {
         const inputVal = playerNameInput.value.trim();
         if (!inputVal) {
@@ -52,7 +54,6 @@ window.onload = () => {
         statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
     });
 
-    // ปุ่มแก้ไขชื่อ
     if (editNameBtn) {
         editNameBtn.addEventListener('click', () => {
             stopTimer();
@@ -65,7 +66,6 @@ window.onload = () => {
         });
     }
 
-    // ปุ่มรีเซ็ตเวลาเป็น 0
     if (resetTimerBtn) {
         resetTimerBtn.addEventListener('click', () => {
             if (confirm("คุณต้องการรีเซ็ตเวลาสะสมทั้งหมดกลับเป็น 0 ใช่หรือไม่?")) {
@@ -76,7 +76,6 @@ window.onload = () => {
         });
     }
 
-    // เลือกตัวละครเมมเบอร์
     const charSelectBtns = document.querySelectorAll('.char-select-btn');
     charSelectBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -84,14 +83,15 @@ window.onload = () => {
             const cardImgUrl = btn.getAttribute('data-card-img');
 
             activateCharacterCard(selectedCharacter, cardImgUrl);
-            startTimer(); // เริ่มจับเวลาสะสมทันทีเมื่อเลือกเมมเบอร์
         });
     });
 
-    // ปุ่มกลับไปเลือกเมมเบอร์อื่น
     if (backToSelectBtn) {
         backToSelectBtn.addEventListener('click', () => {
             stopTimer(); 
+            if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+                ytPlayer.pauseVideo();
+            }
             playerSection.classList.add('hidden');
             characterSelectSection.classList.remove('hidden');
             statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
@@ -108,7 +108,68 @@ function activateCharacterCard(charName, imgUrl) {
 
     characterSelectSection.classList.add('hidden');
     playerSection.classList.remove('hidden');
-    statusText.textContent = `${playerName} กำลังฟังเพลงกับ ${selectedCharacter} 💤`;
+    statusText.textContent = `${playerName} พร้อมจำศีลกับ ${selectedCharacter} (กด Play เพลงด้านล่าง)`;
+
+    // โหลด YouTube Player เมื่อเข้าสู่หน้าจอ player
+    if (!isPlayerInitialized) {
+        loadYouTubeAPI();
+        isPlayerInitialized = true;
+    }
+}
+
+// โหลด YouTube Iframe API Script
+function loadYouTubeAPI() {
+    if (!window.YT) {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    } else {
+        initYTPlayer();
+    }
+}
+
+// ฟังก์ชันนี้จะถูกเรียกอัตโนมัติเมื่อ YouTube API พร้อมใช้งาน
+window.onYouTubeIframeAPIReady = function() {
+    initYTPlayer();
+};
+
+function initYTPlayer() {
+    ytPlayer = new YT.Player('youtube-player', {
+        height: '160',
+        width: '100%',
+        videoId: ALLOWED_TRACK_IDS[0], // วิดีโอเริ่มต้น (เพลงแรกในรายการที่อนุญาต)
+        playerVars: {
+            'autoplay': 0,
+            'controls': 1,
+            'loop': 1,
+            'playlist': ALLOWED_TRACK_IDS.join(',') // ทำเป็นเพลลิสต์จากเพลงที่อนุญาต
+        },
+        events: {
+            'onStateChange': onPlayerStateChange
+        }
+    });
+}
+
+// ดักจับสถานะการเล่นของ YouTube Player
+function onPlayerStateChange(event) {
+    if (event.data === YT.PlayerState.PLAYING) {
+        // ดึง Video ID ของเพลงที่กำลังเล่นอยู่ปัจจุบัน
+        const currentVideoId = ytPlayer.getVideoData().video_id;
+
+        // ตรวจสอบว่าตรงกับรายชื่อเพลงที่อนุญาตให้นับเวลาไหม
+        if (ALLOWED_TRACK_IDS.includes(currentVideoId)) {
+            startTimer();
+            statusText.textContent = `${playerName} กำลังฟัง Insomnia กับ ${selectedCharacter} 💤`;
+        } else {
+            stopTimer();
+            statusText.textContent = `กำลังเล่นเพลงอื่นนอกเหนือจากที่กำหนด (หยุดจับเวลา)`;
+        }
+    } 
+    else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+        stopTimer();
+        statusText.textContent = `${playerName} หยุดฟังเพลง (หยุดจับเวลา)`;
+    }
 }
 
 function startTimer() {
