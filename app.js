@@ -1,4 +1,3 @@
-// ข้อมูลการตั้งค่า Spotify Developer
 const CLIENT_ID = '718b9cea339949308f3f8f3f12a81d85';
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = 'user-read-playback-state user-read-currently-playing user-read-private';
@@ -98,11 +97,10 @@ window.onload = async () => {
 
     if (accessToken) {
         loginBtn.classList.add('hidden');
-        statusText.textContent = "เชื่อมต่อสำเร็จ! กรุณาเลือกตัวละครที่ต้องการ";
+        statusText.textContent = "เชื่อมต่อสำเร็จ! กำลังตรวจสอบข้อมูลโปรไฟล์...";
         await fetchUserProfile(accessToken);
     }
 
-    // [ข้อ 2] จัดการคลิกเลือกตัวการ์ตูนเพื่อเปิดหน้าการ์ดแสดงผล
     const charSelectBtns = document.querySelectorAll('.char-select-btn');
     charSelectBtns.forEach(btn => {
         btn.addEventListener('click', async () => {
@@ -111,7 +109,6 @@ window.onload = async () => {
 
             activateCharacterCard(selectedCharacter, imgUrl);
 
-            // บันทึกตัวละครลง Firebase
             if (currentSpotifyId) {
                 try {
                     const userRef = doc(db, 'insomnia_sleep_users', currentSpotifyId);
@@ -123,7 +120,6 @@ window.onload = async () => {
         });
     });
 
-    // ปุ่มย้อนกลับไปหน้าเลือกตัวละคร
     if (backToSelectBtn) {
         backToSelectBtn.addEventListener('click', () => {
             playerSection.classList.add('hidden');
@@ -170,7 +166,6 @@ async function loadUserDataFromFirestore(spotifyId, displayName) {
             const savedChar = docSnap.data().selected_character;
             if (savedChar) {
                 selectedCharacter = savedChar;
-                // หา URL ภาพจากปุ่มเลือก
                 const targetBtn = document.querySelector(`.char-select-btn[data-name="${selectedCharacter}"]`);
                 if (targetBtn) {
                     activateCharacterCard(selectedCharacter, targetBtn.getAttribute('data-img'));
@@ -201,12 +196,10 @@ async function loadUserDataFromFirestore(spotifyId, displayName) {
     }
 }
 
-// [ข้อ 2 & 3] ฟังก์ชันแสดงหน้าการ์ดและเซ็ตตำแหน่งพิกัด Bubble
 function activateCharacterCard(charName, imgUrl) {
     selectedCharacter = charName;
     selectedCharImg.src = imgUrl;
 
-    // เซ็ตคลาสพิกัดเฉพาะตัวละครนั้นๆ
     pixelTimerBox.className = "pixel-timer-container";
     pixelTimerBox.classList.add(`pos-${selectedCharacter.toLowerCase()}`);
 
@@ -287,19 +280,46 @@ function updateTimerDisplay(totalSeconds) {
     sleepTimerEl.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
-// [ข้อ 4] จัดการปุ่มแชร์สถิติและแนบลิงก์รูปภาพการ์ดไปที่ X
 const shareXBtn = document.getElementById('share-x-btn');
 if (shareXBtn) {
-    shareXBtn.addEventListener('click', () => {
+    shareXBtn.addEventListener('click', async () => {
         const timerText = sleepTimerEl.textContent;
         const currentUrl = window.location.href;
-        const cardImgUrl = selectedCharImg.src; // ดึงลิงก์รูปภาพการ์ดตัวละครที่กำลังแสดงอยู่
+        const cardContainer = document.getElementById('share-card-container');
 
-        const tweetMessage = encodeURIComponent(
-            `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE โดยมี ${selectedCharacter} มาอยู่เป็นเพื่อน ไปแล้ว ${timerText} 💤✨\n\nการ์ดจำศีลของฉัน: ${cardImgUrl}\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
-        );
+        statusText.textContent = "กำลังสร้างรูปภาพการ์ดของคุณ...";
 
-        const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;
-        window.open(twitterShareUrl, '_blank');
+        try {
+            const canvas = await html2canvas(cardContainer, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: null
+            });
+
+            const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const imageURL = URL.createObjectURL(imageBlob);
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = imageURL;
+            downloadLink.download = `insomnia-sleep-card-${selectedCharacter.toLowerCase()}.png`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+
+            statusText.textContent = `บันทึกภาพการ์ดเรียบร้อย! กำลังเปิด X... 💤`;
+
+            const tweetMessage = encodeURIComponent(
+                `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE โดยมี ${selectedCharacter} มาอยู่เป็นเพื่อน ไปแล้ว ${timerText} 💤✨\n\n(บันทึกภาพการ์ดแล้ว อย่าลืมแนบรูปภาพลงในโพสต์นะ!)\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
+            );
+
+            const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;
+            setTimeout(() => {
+                window.open(twitterShareUrl, '_blank');
+            }, 1000);
+
+        } catch (error) {
+            console.error("Error generating card image:", error);
+            statusText.textContent = "เกิดข้อผิดพลาดในการสร้างภาพการ์ด กรุณาลองใหม่อีกครั้ง";
+        }
     });
 }

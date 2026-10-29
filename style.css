@@ -4,7 +4,6 @@ body {
     font-family: 'Prompt', sans-serif;
 }
 
-/* 🌙 โทนสีพาสเทลตอนกลางคืน */
 .night-pastel-bg {
     background: linear-gradient(135deg, #18122B 0%, #291C3A 50%, #151122 100%);
 }
@@ -19,7 +18,6 @@ body {
     background: rgba(26, 19, 43, 0.6);
 }
 
-/* ฟอนท์ Pixel สไตล์เกมยุคเก่า */
 .pixel-font {
     font-family: 'Press Start 2P', monospace;
     font-size: clamp(0.5rem, 1.6vw, 0.68rem);
@@ -39,7 +37,6 @@ body {
     font-size: 0.55rem;
 }
 
-/* กล่องจัดตำแหน่งเวลารวมบน Bubble คำพูดในการ์ด */
 .pixel-timer-container {
     position: absolute;
     left: 50%;
@@ -53,7 +50,7 @@ body {
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
-/* 📌 [ข้อ 3] พิกัดตำแหน่งเฉพาะสำหรับช่อง bubble คำพูดของแต่ละตัวละคร (สามารถมาปรับตัวเลข % top และ left ตรงนี้ได้เลยครับถ้าต้องการขยับ) */
+/* 📌 พิกัดตำแหน่งช่องคำพูดของการ์ดแต่ละตัวละคร (สามารถปรับตัวเลข top % ตรงนี้ได้หากต้องการขยับ) */
 .pos-shotaro { top: 62%; left: 50%; }
 .pos-eunseok { top: 60%; left: 50%; }
 .pos-sungchan { top: 64%; left: 50%; }
@@ -61,7 +58,11 @@ body {
 .pos-sohee { top: 63%; left: 50%; }
 .pos-anton { top: 62%; left: 50%; }
 
-/* อนิเมชั่นการ์ดหายใจเบาๆ */
+.char-select-btn.selected {
+    border-color: #f472b6 !important;
+    background-color: rgba(244, 114, 182, 0.2) !important;
+}
+
 @keyframes breathing {
     0%, 100% { transform: translateY(0) scale(1); }
     50% { transform: translateY(-3px) scale(1.01); }
