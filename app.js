@@ -105,9 +105,9 @@ window.onload = async () => {
     charSelectBtns.forEach(btn => {
         btn.addEventListener('click', async () => {
             selectedCharacter = btn.getAttribute('data-name');
-            const imgUrl = btn.getAttribute('data-img');
+            const cardImgUrl = btn.getAttribute('data-card-img'); // ดึงภาพการ์ดด้านใน
 
-            activateCharacterCard(selectedCharacter, imgUrl);
+            activateCharacterCard(selectedCharacter, cardImgUrl);
 
             if (currentSpotifyId) {
                 try {
@@ -168,7 +168,7 @@ async function loadUserDataFromFirestore(spotifyId, displayName) {
                 selectedCharacter = savedChar;
                 const targetBtn = document.querySelector(`.char-select-btn[data-name="${selectedCharacter}"]`);
                 if (targetBtn) {
-                    activateCharacterCard(selectedCharacter, targetBtn.getAttribute('data-img'));
+                    activateCharacterCard(selectedCharacter, targetBtn.getAttribute('data-card-img'));
                 } else {
                     characterSelectSection.classList.remove('hidden');
                     statusText.textContent = "กรุณาเลือกเมมเบอร์ของคุณ";
