@@ -14,10 +14,18 @@
     <div class="text-center p-6 night-pastel-card rounded-3xl shadow-2xl max-w-md w-full border border-purple-500/30">
         <h1 class="text-xl font-bold mb-3 pixel-title text-purple-200">✨ INSOMNIA TRACKER ✨</h1>
         
-        <!-- การ์ดแสดงชื่อผู้เล่น (ซ่อนไว้ก่อนจนกว่าจะกดเริ่ม) -->
-        <div id="user-profile" class="hidden flex items-center justify-center space-x-3 mb-4 bg-purple-950/40 p-3 rounded-2xl border border-purple-400/20 shadow-inner">
-            <div class="w-8 h-8 rounded-full bg-pink-500/30 flex items-center justify-center border border-pink-300 text-pink-200 text-xs font-bold">✨</div>
-            <span id="user-name" class="font-semibold text-pink-200 text-sm"></span>
+        <!-- การ์ดแสดงชื่อผู้เล่น พร้อมปุ่มเปลี่ยนชื่อและรีเซ็ตเวลา (ซ่อนไว้ก่อนจนกว่าจะกรอกชื่อ) -->
+        <div id="user-profile" class="hidden flex flex-col items-center space-y-2 mb-4 bg-purple-950/40 p-3 rounded-2xl border border-purple-400/20 shadow-inner">
+            <div class="flex items-center space-x-2">
+                <div class="w-7 h-7 rounded-full bg-pink-500/30 flex items-center justify-center border border-pink-300 text-pink-200 text-xs font-bold">✨</div>
+                <span id="user-name" class="font-semibold text-pink-200 text-sm"></span>
+            </div>
+            <!-- ปุ่มจัดการชื่อและรีเซ็ตเวลา -->
+            <div class="flex space-x-3 text-[11px]">
+                <button id="edit-name-btn" class="text-purple-300 hover:text-pink-300 underline transition">✏️ เปลี่ยนชื่อ</button>
+                <span class="text-purple-600">|</span>
+                <button id="reset-timer-btn" class="text-purple-300 hover:text-red-400 underline transition">🔄 รีเซ็ตเวลาเป็น 0</button>
+            </div>
         </div>
 
         <!-- ข้อความสถานะและคำเตือนเรื่องห้ามปิดเบราว์เซอร์ -->

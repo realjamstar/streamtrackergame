@@ -8,6 +8,8 @@ const playerNameInput = document.getElementById('player-name-input');
 const startNameBtn = document.getElementById('start-name-btn');
 const userProfile = document.getElementById('user-profile');
 const userNameEl = document.getElementById('user-name');
+const editNameBtn = document.getElementById('edit-name-btn');
+const resetTimerBtn = document.getElementById('reset-timer-btn');
 const characterSelectSection = document.getElementById('character-select-section');
 const playerSection = document.getElementById('player-section');
 const statusText = document.getElementById('status-text');
@@ -17,6 +19,7 @@ const pixelTimerBox = document.getElementById('pixel-timer-box');
 const backToSelectBtn = document.getElementById('back-to-select-btn');
 
 window.onload = () => {
+    // โหลดเวลาสะสมเดิมที่เคยเปิดทิ้งไว้
     totalElapsedSeconds = parseInt(localStorage.getItem('insomnia_total_seconds')) || 0;
     updateTimerDisplay(totalElapsedSeconds);
 
@@ -31,6 +34,7 @@ window.onload = () => {
         statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
     }
 
+    // กดปุ่มเริ่มหลังจากพิมพ์ชื่อ
     startNameBtn.addEventListener('click', () => {
         const inputVal = playerNameInput.value.trim();
         if (!inputVal) {
@@ -48,6 +52,31 @@ window.onload = () => {
         statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
     });
 
+    // ปุ่มแก้ไขชื่อ (เปิดช่องกรอกชื่อให้พิมพ์ใหม่)
+    if (editNameBtn) {
+        editNameBtn.addEventListener('click', () => {
+            stopTimer();
+            playerSection.classList.add('hidden');
+            characterSelectSection.classList.add('hidden');
+            userProfile.classList.add('hidden');
+            nameInputSection.classList.remove('hidden');
+            playerNameInput.value = playerName; // ดึงชื่อเดิมมาใส่ช่องให้แก้
+            statusText.textContent = "พิมพ์ชื่อของคุณแล้วเลือกเมมเบอร์ที่ต้องการ";
+        });
+    }
+
+    // ปุ่มรีเซ็ตเวลาเป็น 0
+    if (resetTimerBtn) {
+        resetTimerBtn.addEventListener('click', () => {
+            if (confirm("คุณต้องการรีเซ็ตเวลาสะสมทั้งหมดกลับเป็น 0 ใช่หรือไม่?")) {
+                totalElapsedSeconds = 0;
+                localStorage.setItem('insomnia_total_seconds', 0);
+                updateTimerDisplay(totalElapsedSeconds);
+            }
+        });
+    }
+
+    // เลือกตัวละครเมมเบอร์
     const charSelectBtns = document.querySelectorAll('.char-select-btn');
     charSelectBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -55,13 +84,14 @@ window.onload = () => {
             const cardImgUrl = btn.getAttribute('data-card-img');
 
             activateCharacterCard(selectedCharacter, cardImgUrl);
-            startTimer(); // เริ่มจับเวลาทันทีเมื่อเลือกเมมเบอร์และเปิดหน้าเว็บค้างไว้
+            startTimer(); // เริ่มจับเวลาสะสมทันที
         });
     });
 
+    // ปุ่มกลับไปเลือกเมมเบอร์อื่น
     if (backToSelectBtn) {
         backToSelectBtn.addEventListener('click', () => {
-            stopTimer(); // หยุดเวลาชั่วคราวเมื่อกลับไปเลือกตัวละคร
+            stopTimer(); 
             playerSection.classList.add('hidden');
             characterSelectSection.classList.remove('hidden');
             statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
@@ -88,7 +118,7 @@ function startTimer() {
         totalElapsedSeconds++;
         updateTimerDisplay(totalElapsedSeconds);
         
-        // บันทึกเวลาสะสมไว้ในเครื่อง (localStorage) เพื่อไม่ให้หายเวลารีเฟรช
+        // บันทึกเวลาสะสมไว้ในเครื่อง
         localStorage.setItem('insomnia_total_seconds', totalElapsedSeconds);
     }, 1000);
 }
