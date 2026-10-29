@@ -32,7 +32,7 @@
         <div id="status-container" class="space-y-2 mb-4">
             <p id="status-text" class="text-purple-300 text-sm font-light">พิมพ์ชื่อของคุณแล้วเลือกเมมเบอร์ที่ต้องการ</p>
             <p class="text-xs text-pink-300 bg-purple-950/40 py-1.5 px-3 rounded-xl border border-pink-500/20">
-                ✨⚠️ ระบบจะนับเวลาเฉพาะตอนเปิดเพลง Insomnia ที่กำหนดเท่านั้น นอกเหนือจากนั้นจะหยุดอัตโนมัติ ✨ 
+                ✨⚠️ กด Play ที่เครื่องเล่น Spotify หรือ YouTube ด้านล่างเพื่อเริ่มนับเวลาอัตโนมัติ ✨ 
             </p>
         </div>
 
@@ -81,16 +81,21 @@
             </div>
         </div>
 
-        <!-- หน้าที่ 2: แสดงผลการ์ดที่เลือกพร้อมตัวเลขนับเวลาในช่อง Bubble และ YouTube Player -->
-        <div id="player-section" class="hidden mt-4 space-y-4">
+        <!-- หน้าที่ 2: แสดงผลการ์ดที่เลือกพร้อมตัวเลขนับเวลา และเครื่องเล่นเพลงทั้งสองแบบ -->
+        <div id="player-section" class="hidden mt-4 space-y-3">
             
             <button id="back-to-select-btn" class="text-xs text-purple-300 hover:text-pink-300 underline mb-1">
                 ← กลับไปเลือกเมมเบอร์อื่น
             </button>
 
-            <!-- YouTube Embed Player Container -->
+            <!-- 1. Spotify Embed Player Container -->
+            <div class="bg-purple-950/20 p-2 rounded-xl border border-purple-500/10">
+                <div id="spotify-embed-container"></div>
+            </div>
+
+            <!-- 2. YouTube Player Container (กรองเฉพาะเพลง Insomnia ที่กำหนด) -->
             <div class="bg-purple-950/20 p-2 rounded-xl border border-purple-500/10 overflow-hidden">
-                <div id="youtube-player" class="w-full h-36 rounded-lg"></div>
+                <div id="youtube-player" class="w-full h-32 rounded-lg"></div>
             </div>
 
             <!-- กล่องการ์ดตัวละครและปุ่มแชร์ -->
