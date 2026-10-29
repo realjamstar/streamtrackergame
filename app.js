@@ -2,6 +2,7 @@ let timerInterval = null;
 let totalElapsedSeconds = 0; 
 let selectedCharacter = null; 
 let playerName = "";
+let embedControllerRef = null;
 
 const nameInputSection = document.getElementById('name-input-section');
 const playerNameInput = document.getElementById('player-name-input');
@@ -19,11 +20,11 @@ const pixelTimerBox = document.getElementById('pixel-timer-box');
 const backToSelectBtn = document.getElementById('back-to-select-btn');
 
 window.onload = () => {
-    // โหลดเวลาสะสมเดิมที่เคยเปิดทิ้งไว้
+    // โหลดเวลาสะสมเดิมที่เคยเก็บไว้
     totalElapsedSeconds = parseInt(localStorage.getItem('insomnia_total_seconds')) || 0;
     updateTimerDisplay(totalElapsedSeconds);
 
-    // ตรวจสอบว่าเคยใส่ชื่อไว้ก่อนหน้านี้ไหม
+    // ตรวจสอบชื่อผู้เล่นเดิมใน LocalStorage
     const savedName = localStorage.getItem('insomnia_player_name');
     if (savedName) {
         playerName = savedName;
@@ -52,7 +53,7 @@ window.onload = () => {
         statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
     });
 
-    // ปุ่มแก้ไขชื่อ (เปิดช่องกรอกชื่อให้พิมพ์ใหม่)
+    // ปุ่มแก้ไขชื่อ
     if (editNameBtn) {
         editNameBtn.addEventListener('click', () => {
             stopTimer();
@@ -60,8 +61,8 @@ window.onload = () => {
             characterSelectSection.classList.add('hidden');
             userProfile.classList.add('hidden');
             nameInputSection.classList.remove('hidden');
-            playerNameInput.value = playerName; // ดึงชื่อเดิมมาใส่ช่องให้แก้
-            statusText.textContent = "พิมพ์ชื่อของคุณแล้วเลือกเมมเบอร์ที่ต้องการ";
+            playerNameInput.value = playerName;
+            statusText.textContent = "พิมพ์ชื่อใหม่ของคุณแล้วกดเริ่ม";
         });
     }
 
@@ -84,7 +85,6 @@ window.onload = () => {
             const cardImgUrl = btn.getAttribute('data-card-img');
 
             activateCharacterCard(selectedCharacter, cardImgUrl);
-            startTimer(); // เริ่มจับเวลาสะสมทันที
         });
     });
 
@@ -97,7 +97,42 @@ window.onload = () => {
             statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
         });
     }
+
+    // โหลด Spotify Iframe API สำหรับสร้าง Embed Player
+    initSpotifyEmbed();
 };
+
+function initSpotifyEmbed() {
+    window.onSpotifyIframeApiReady = (IFrameAPI) => {
+        const element = document.getElementById('spotify-player');
+        const options = {
+            width: '100%',
+            height: '80',
+            uri: 'spotify:track:5jC3lBWBcVdby76sqWwqAE'
+        };
+        
+        const callback = (EmbedController) => {
+            embedControllerRef = EmbedController;
+            // ดักจับสถานะ Play / Pause จาก Embed Player
+            EmbedController.addListener('playback_update', e => {
+                if (e.data.isPaused) {
+                    stopTimer();
+                    statusText.textContent = `${playerName} หยุดฟังเพลง Insomnia (หยุดจับเวลา)`;
+                } else {
+                    startTimer();
+                    statusText.textContent = `${playerName} กำลังฟัง Insomnia กับ ${selectedCharacter} 💤`;
+                }
+            });
+        };
+
+        IFrameAPI.createIframe(element, options, callback);
+    };
+
+    const scriptTag = document.createElement('script');
+    scriptTag.src = "https://open.spotify.com/embed/iframe-api/v1";
+    scriptTag.async = true;
+    document.body.appendChild(scriptTag);
+}
 
 function activateCharacterCard(charName, imgUrl) {
     selectedCharacter = charName;
@@ -108,17 +143,15 @@ function activateCharacterCard(charName, imgUrl) {
 
     characterSelectSection.classList.add('hidden');
     playerSection.classList.remove('hidden');
-    statusText.textContent = `${playerName} กำลังฟังเพลงกับ ${selectedCharacter} 💤`;
+    statusText.textContent = `${playerName} พร้อมจำศีลกับ ${selectedCharacter} (กด Play เพลงด้านล่างเพื่อเริ่มนับเวลา)`;
 }
 
 function startTimer() {
-    if (timerInterval) return; // ป้องกันการนับซ้อน
+    if (timerInterval) return;
 
     timerInterval = setInterval(() => {
         totalElapsedSeconds++;
         updateTimerDisplay(totalElapsedSeconds);
-        
-        // บันทึกเวลาสะสมไว้ในเครื่อง
         localStorage.setItem('insomnia_total_seconds', totalElapsedSeconds);
     }, 1000);
 }
@@ -167,7 +200,7 @@ if (shareXBtn) {
             statusText.textContent = `บันทึกภาพการ์ดเรียบร้อย! กำลังเปิด X... 💤`;
 
             const tweetMessage = encodeURIComponent(
-                `🌙 ${playerName} เปิดหน้าเว็บฟังเพลง Insomnia - RIIZE สะสมเวลาความฝันกับ ${selectedCharacter} ไปแล้ว ${timerText} นาที 💤✨\n\n(บันทึกภาพการ์ดแล้ว อย่าลืมแนบรูปภาพลงในโพสต์นะ!)\n\nมาร่วมเปิดแท็บฟังเพลงและสะสมเวลาไปด้วยกันที่:`
+                `🌙 ${playerName} ฟังเพลง Insomnia - RIIZE สะสมเวลาความฝันกับ ${selectedCharacter} ไปแล้ว ${timerText} นาที 💤✨\n\n(บันทึกภาพการ์ดแล้ว อย่าลืมแนบรูปภาพลงในโพสต์นะ!)\n\nมาร่วมฟังเพลงและสะสมเวลาไปด้วยกันที่:`
             );
 
             const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;

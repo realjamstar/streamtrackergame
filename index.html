@@ -14,7 +14,7 @@
     <div class="text-center p-6 night-pastel-card rounded-3xl shadow-2xl max-w-md w-full border border-purple-500/30">
         <h1 class="text-xl font-bold mb-3 pixel-title text-purple-200">✨ INSOMNIA TRACKER ✨</h1>
         
-        <!-- การ์ดแสดงชื่อผู้เล่น พร้อมปุ่มเปลี่ยนชื่อและรีเซ็ตเวลา (ซ่อนไว้ก่อนจนกว่าจะกรอกชื่อ) -->
+        <!-- การ์ดแสดงชื่อผู้เล่น พร้อมปุ่มเปลี่ยนชื่อและรีเซ็ตเวลา -->
         <div id="user-profile" class="hidden flex flex-col items-center space-y-2 mb-4 bg-purple-950/40 p-3 rounded-2xl border border-purple-400/20 shadow-inner">
             <div class="flex items-center space-x-2">
                 <div class="w-7 h-7 rounded-full bg-pink-500/30 flex items-center justify-center border border-pink-300 text-pink-200 text-xs font-bold">✨</div>
@@ -28,11 +28,11 @@
             </div>
         </div>
 
-        <!-- ข้อความสถานะและคำเตือนเรื่องห้ามปิดเบราว์เซอร์ -->
+        <!-- ข้อความสถานะและคำเตือน -->
         <div id="status-container" class="space-y-2 mb-4">
             <p id="status-text" class="text-purple-300 text-sm font-light">พิมพ์ชื่อของคุณแล้วเลือกเมมเบอร์ที่ต้องการ</p>
             <p class="text-xs text-pink-300 bg-purple-950/40 py-1.5 px-3 rounded-xl border border-pink-500/20">
-                ✨⚠️  เปิดแท็บนี้ทิ้งไว้แล้วปล่อยใจจอยๆ กับเพลง Insomnia ระบบจะช่วยเก็บเวลานอนให้เรื่อยๆ ห้ามปิดเบราว์เซอร์น้าา ✨ 
+                ✨⚠️ กด Play ที่เครื่องเล่นเพลงด้านล่างเพื่อเริ่มนับเวลาสะสม ห้ามปิดแท็บนี้น้าา ✨ 
             </p>
         </div>
 
@@ -81,21 +81,16 @@
             </div>
         </div>
 
-        <!-- หน้าที่ 2: แสดงผลการ์ดที่เลือกพร้อมตัวเลขนับเวลาในช่อง Bubble -->
+        <!-- หน้าที่ 2: แสดงผลการ์ดที่เลือกพร้อมตัวเลขนับเวลาในช่อง Bubble และ Spotify Embed Player -->
         <div id="player-section" class="hidden mt-4 space-y-4">
             
             <button id="back-to-select-btn" class="text-xs text-purple-300 hover:text-pink-300 underline mb-1">
                 ← กลับไปเลือกเมมเบอร์อื่น
             </button>
 
-            <div class="bg-purple-950/20 p-2.5 rounded-xl border border-purple-500/10">
-                <p class="text-[11px] text-purple-300">เปิดเพลงฟังวนไป:</p>
-                <p id="track-name" class="text-sm font-semibold text-pink-300 truncate">Insomnia - RIIZE</p>
-                
-                <!-- ปุ่มลัดเปิดเพลง Insomnia บน Spotify -->
-                <a href="https://open.spotify.com/track/5jC3lBWBcVdby76sqWwqAE" target="_blank" class="mt-2 inline-flex items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition duration-200 space-x-1.5 shadow-sm">
-                    <span>🎵 เปิดเพลง Insomnia บน Spotify</span>
-                </a>
+            <!-- Spotify Embed Player สำหรับกด Play เพื่อจับเวลาอัตโนมัติ -->
+            <div class="bg-purple-950/20 p-2 rounded-xl border border-purple-500/10">
+                <div id="spotify-player"></div>
             </div>
 
             <!-- กล่องการ์ดตัวละครและปุ่มแชร์ -->
