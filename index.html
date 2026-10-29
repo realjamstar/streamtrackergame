@@ -14,85 +14,81 @@
     <div class="text-center p-6 night-pastel-card rounded-3xl shadow-2xl max-w-md w-full border border-purple-500/30">
         <h1 class="text-xl font-bold mb-3 pixel-title text-purple-200">✨ INSOMNIA TRACKER ✨</h1>
         
-        <div id="user-profile" class="hidden flex items-center justify-center space-x-3 mb-4 bg-purple-950/40 p-3 rounded-2xl border border-purple-400/20">
-            <img id="user-avatar" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-pink-300 object-cover shadow-sm">
-            <span id="user-name" class="font-semibold text-pink-200 text-sm"></span>
+        <!-- ข้อความสถานะและคำเตือนเรื่องห้ามปิดเบราว์เซอร์ -->
+        <div id="status-container" class="space-y-2 mb-6">
+            <p id="status-text" class="text-purple-300 text-sm font-light">เลือกเมมเบอร์ที่ต้องการ</p>
+            <p class="text-xs text-pink-300 bg-purple-950/40 py-1.5 px-3 rounded-xl border border-pink-500/20">
+                ✨⚠️  เปิดแท็บนี้ทิ้งไว้แล้วปล่อยใจจอยๆ กับเพลง Insomnia ระบบจะช่วยเก็บเวลานอนให้เรื่อยๆ ห้ามปิดเบราว์เซอร์น้าา ✨ 
+            </p>
         </div>
 
-        <p id="status-text" class="text-purple-300 text-sm mb-6 font-light">กรุณาล็อกอินเข้าสู่ระบบ Spotify ก่อนเริ่มใช้งาน</p>
-
-        <button id="login-btn" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2.5 px-6 rounded-full transition duration-200 shadow-lg shadow-purple-500/20 text-sm">
-            Login with your Spotify
-        </button>
-
         <!-- หน้าที่ 1: เลือกตัวการ์ตูนทั้ง 6 ตัว -->
-<div id="character-select-section" class="hidden mt-4 space-y-4">
-    <p class="text-xs font-semibold text-purple-200">เลือกเมมเบอร์ที่ต้องการ:</p>
-    <div class="grid grid-cols-2 gap-3">
-        <!-- 1. SHOTARO -->
-        <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="SHOTARO" data-img="images/shotaro.png" data-card-img="images/17.jpg">
-            <img src="images/shotaro.png" alt="SHOTARO" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
-            <span class="text-xs font-bold text-purple-200 pixel-subtitle">SHOTARO</span>
-        </button>
-        <!-- 2. EUNSEOK -->
-        <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="EUNSEOK" data-img="images/eunseok.png" data-card-img="images/18.jpg">
-            <img src="images/eunseok.png" alt="EUNSEOK" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
-            <span class="text-xs font-bold text-purple-200 pixel-subtitle">EUNSEOK</span>
-        </button>
-        <!-- 3. SUNGCHAN -->
-        <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="SUNGCHAN" data-img="images/sungchan.png" data-card-img="images/19.jpg">
-            <img src="images/sungchan.png" alt="SUNGCHAN" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
-            <span class="text-xs font-bold text-purple-200 pixel-subtitle">SUNGCHAN</span>
-        </button>
-        <!-- 4. WONBIN -->
-        <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="WONBIN" data-img="images/wonbin.png" data-card-img="images/20.jpg">
-            <img src="images/wonbin.png" alt="WONBIN" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
-            <span class="text-xs font-bold text-purple-200 pixel-subtitle">WONBIN</span>
-        </button>
-        <!-- 5. SOHEE -->
-        <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="SOHEE" data-img="images/sohee.png" data-card-img="images/21.jpg">
-            <img src="images/sohee.png" alt="SOHEE" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
-            <span class="text-xs font-bold text-purple-200 pixel-subtitle">SOHEE</span>
-        </button>
-        <!-- 6. ANTON -->
-        <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="ANTON" data-img="images/anton.png" data-card-img="images/22.jpg">
-            <img src="images/anton.png" alt="ANTON" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
-            <span class="text-xs font-bold text-purple-200 pixel-subtitle">ANTON</span>
-        </button>
-    </div>
-</div>
+        <div id="character-select-section" class="mt-2 space-y-4">
+            <p class="text-xs font-semibold text-purple-200">เลือกเมมเบอร์ที่ต้องการ:</p>
+            <div class="grid grid-cols-2 gap-3">
+                <!-- 1. SHOTARO -->
+                <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="SHOTARO" data-img="images/shotaro.png" data-card-img="images/17.jpg">
+                    <img src="images/shotaro.png" alt="SHOTARO" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
+                    <span class="text-xs font-bold text-purple-200 pixel-subtitle">SHOTARO</span>
+                </button>
+                <!-- 2. EUNSEOK -->
+                <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="EUNSEOK" data-img="images/eunseok.png" data-card-img="images/18.jpg">
+                    <img src="images/eunseok.png" alt="EUNSEOK" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
+                    <span class="text-xs font-bold text-purple-200 pixel-subtitle">EUNSEOK</span>
+                </button>
+                <!-- 3. SUNGCHAN -->
+                <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="SUNGCHAN" data-img="images/sungchan.png" data-card-img="images/19.jpg">
+                    <img src="images/sungchan.png" alt="SUNGCHAN" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
+                    <span class="text-xs font-bold text-purple-200 pixel-subtitle">SUNGCHAN</span>
+                </button>
+                <!-- 4. WONBIN -->
+                <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="WONBIN" data-img="images/wonbin.png" data-card-img="images/20.jpg">
+                    <img src="images/wonbin.png" alt="WONBIN" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
+                    <span class="text-xs font-bold text-purple-200 pixel-subtitle">WONBIN</span>
+                </button>
+                <!-- 5. SOHEE -->
+                <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="SOHEE" data-img="images/sohee.png" data-card-img="images/21.jpg">
+                    <img src="images/sohee.png" alt="SOHEE" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
+                    <span class="text-xs font-bold text-purple-200 pixel-subtitle">SOHEE</span>
+                </button>
+                <!-- 6. ANTON -->
+                <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="ANTON" data-img="images/anton.png" data-card-img="images/22.jpg">
+                    <img src="images/anton.png" alt="ANTON" class="w-24 h-24 object-contain rounded-xl group-hover:scale-105 transition shadow-md">
+                    <span class="text-xs font-bold text-purple-200 pixel-subtitle">ANTON</span>
+                </button>
+            </div>
+        </div>
 
         <!-- หน้าที่ 2: แสดงผลการ์ดที่เลือกพร้อมตัวเลขนับเวลาในช่อง Bubble -->
         <div id="player-section" class="hidden mt-4 space-y-4">
-    
-    <button id="back-to-select-btn" class="text-xs text-purple-300 hover:text-pink-300 underline mb-1">
-        ← กลับไปเลือกเมมเบอร์อื่น
-    </button>
+            
+            <button id="back-to-select-btn" class="text-xs text-purple-300 hover:text-pink-300 underline mb-1">
+                ← กลับไปเลือกเมมเบอร์อื่น
+            </button>
 
-    <div class="bg-purple-950/20 p-2.5 rounded-xl border border-purple-500/10">
-        <p class="text-[11px] text-purple-300">กำลังฟังเพลง:</p>
-        <p id="track-name" class="text-sm font-semibold text-pink-300 truncate">-</p>
-        
-        <!-- 📌 เพิ่มปุ่มลัดเปิดเพลง Insomnia ตรงนี้ -->
-        <a href="https://open.spotify.com/track/5jC3lBWBcVdby76sqWwqAE" target="_blank" class="mt-2 inline-flex items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition duration-200 space-x-1.5 shadow-sm">
-            <span>🎵 เปิดเพลง Insomnia บน Spotify</span>
-        </a>
-    </div>
+            <div class="bg-purple-950/20 p-2.5 rounded-xl border border-purple-500/10">
+                <p class="text-[11px] text-purple-300">เปิดเพลงฟังวนไป:</p>
+                <p id="track-name" class="text-sm font-semibold text-pink-300 truncate">Insomnia - RIIZE</p>
+                
+                <!-- ปุ่มลัดเปิดเพลง Insomnia บน Spotify -->
+                <a href="https://open.spotify.com/track/5jC3lBWBcVdby76sqWwqAE" target="_blank" class="mt-2 inline-flex items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1.5 px-3 rounded-lg transition duration-200 space-x-1.5 shadow-sm">
+                    <span>🎵 เปิดเพลง Insomnia บน Spotify</span>
+                </a>
+            </div>
 
-    <!-- กล่องการ์ดตัวละครและปุ่มแชร์ -->
-    <div id="share-card-container" class="relative inline-block w-full max-w-[320px] mx-auto">
-        <img id="selected-char-img" src="" alt="Sleepy Card" class="w-full h-auto object-contain rounded-xl shadow-md" crossorigin="anonymous">
-        
-        <div id="pixel-timer-box" class="pixel-timer-container">
-            <p id="sleep-timer" class="pixel-font text-slate-900 font-bold">00:00:00</p>
+            <!-- กล่องการ์ดตัวละครและปุ่มแชร์ -->
+            <div id="share-card-container" class="relative inline-block w-full max-w-[320px] mx-auto">
+                <img id="selected-char-img" src="" alt="Sleepy Card" class="w-full h-auto object-contain rounded-xl shadow-md" crossorigin="anonymous">
+                
+                <div id="pixel-timer-box" class="pixel-timer-container">
+                    <p id="sleep-timer" class="pixel-font text-slate-900 font-bold">00:00:00</p>
+                </div>
+            </div>
+
+            <button id="share-x-btn" class="w-full bg-slate-900 hover:bg-black border border-purple-500/30 text-white font-bold py-2.5 px-4 rounded-full transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-md">
+                <span>𝕏 บันทึกภาพการ์ดและแชร์ไปที่ X</span>
+            </button>
         </div>
-    </div>
-
-    <button id="share-x-btn" class="w-full bg-slate-900 hover:bg-black border border-purple-500/30 text-white font-bold py-2.5 px-4 rounded-full transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-md">
-        <span>𝕏 บันทึกภาพการ์ดและแชร์ไปที่ X</span>
-    </button>
-</div>
-</div>
     </div>
 
     <script type="module" src="app.js"></script>
