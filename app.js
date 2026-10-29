@@ -2,12 +2,17 @@ let timerInterval = null;
 let totalElapsedSeconds = 0; 
 let selectedCharacter = null; 
 let playerName = "";
+
+// ตัวควบคุม API
+let spotifyController = null;
+let isSpotifyPlaying = false;
+
 let ytPlayer = null;
 let isYTInitialized = false;
+let isYTPlaying = false;
 
 const CORRECT_YT_ID = "RgkoXU4BlOE"; // YouTube ID ที่ถูกต้อง
-let isSpotifyActive = false;
-let isYTPlaying = false;
+const SPOTIFY_TRACK_URI = "spotify:track:5jC3lBWBcVdby76sqWwqAE";
 
 const nameInputSection = document.getElementById('name-input-section');
 const playerNameInput = document.getElementById('player-name-input');
@@ -90,10 +95,6 @@ window.onload = () => {
             tabYoutube.className = "py-1.5 px-3 rounded-lg text-xs font-bold text-purple-300 hover:text-white transition";
             spotifyBox.classList.remove('hidden');
             youtubeBox.classList.add('hidden');
-
-            // เมื่ออยู่แท็บ Spotify ให้เริ่มนับเวลาฟังเพลงทันทีที่เลือกเปิดเพลง
-            isSpotifyActive = true;
-            evaluateTimerState();
         });
 
         tabYoutube.addEventListener('click', () => {
@@ -101,10 +102,6 @@ window.onload = () => {
             tabSpotify.className = "py-1.5 px-3 rounded-lg text-xs font-bold text-purple-300 hover:text-white transition";
             youtubeBox.classList.remove('hidden');
             spotifyBox.classList.add('hidden');
-
-            // ออกจากแท็บ Spotify ปิดสถานะ
-            isSpotifyActive = false;
-            evaluateTimerState();
 
             if (!isYTInitialized) {
                 initYTPlayer();
@@ -142,14 +139,39 @@ function activateCharacterCard(charName, imgUrl) {
 
     characterSelectSection.classList.add('hidden');
     playerSection.classList.remove('hidden');
-    
-    // ตั้งค่าเริ่มต้นให้อยู่ที่แท็บ Spotify และเริ่มนับเวลาให้ทันทีที่เลือกเมมเบอร์
-    isSpotifyActive = true;
-    evaluateTimerState();
-    statusText.textContent = `${playerName} กำลังฟัง Spotify กับ ${selectedCharacter} 💤`;
+    statusText.textContent = `${playerName} พร้อมจำศีลกับ ${selectedCharacter} (กด Play เพลงที่ต้องการได้เลย)`;
 }
 
-// สร้าง YouTube Player ควบคุมผ่าน API
+// 1. Spotify Embed API ดักจับสถานะ Play/Pause อัตโนมัติ
+window.onSpotifyIframeApiReady = (IFrameAPI) => {
+    const element = document.getElementById('spotify-embed-container');
+    const options = {
+        width: '100%',
+        height: '80',
+        uri: SPOTIFY_TRACK_URI
+    };
+    
+    const callback = (EmbedController) => {
+        spotifyController = EmbedController;
+        EmbedController.addListener('playback_update', e => {
+            // e.data.isPaused จะบอกสถานะว่าหยุดเล่นอยู่หรือไม่
+            if (e.data.isPaused) {
+                isSpotifyPlaying = false;
+            } else {
+                isSpotifyPlaying = true;
+            }
+            evaluateTimerState();
+        });
+    };
+
+    IFrameAPI.createIframe(element, options, callback);
+};
+
+// 2. YouTube Player API ดักจับสถานะ Play/Pause อัตโนมัติ
+window.onYouTubeIframeAPIReady = function() {
+    // จะถูกเรียกเมื่อ YouTube API โหลดเสร็จ
+};
+
 function initYTPlayer() {
     ytPlayer = new YT.Player('youtube-player', {
         height: '130',
@@ -179,12 +201,11 @@ function onYTPlayerStateChange(event) {
     evaluateTimerState();
 }
 
-// ประเมินสถานะการนับเวลารวม
+// ประเมินสถานะการนับเวลารวม (นับเฉพาะตอนกด Play จริงๆ เท่านั้น)
 function evaluateTimerState() {
-    // ถ้าอยู่หน้า Spotify หรือ YouTube กำลังเล่นอยู่ ให้เริ่มนับเวลา
-    if (isSpotifyActive || isYTPlaying) {
+    if (isSpotifyPlaying || isYTPlaying) {
         startTimer();
-        const platform = isSpotifyActive ? "Spotify" : "YouTube";
+        const platform = isSpotifyPlaying ? "Spotify" : "YouTube";
         statusText.textContent = `${playerName} กำลังฟังเพลงผ่าน ${platform} กับ ${selectedCharacter} 💤`;
     } else {
         stopTimer();
@@ -194,8 +215,9 @@ function evaluateTimerState() {
 
 function resetAllPlayback() {
     stopTimer();
-    isSpotifyActive = false;
+    isSpotifyPlaying = false;
     isYTPlaying = false;
+    if (spotifyController && typeof spotifyController.pause === 'function') spotifyController.pause();
     if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
 }
 
