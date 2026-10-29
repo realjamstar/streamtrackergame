@@ -3,16 +3,13 @@ let totalElapsedSeconds = 0;
 let selectedCharacter = null; 
 let playerName = "";
 
-// ตัวควบคุม API
-let spotifyController = null;
-let isSpotifyPlaying = false;
-
+// ตัวควบคุมสถานะ
+let isSpotifyManualPlaying = false;
 let ytPlayer = null;
 let isYTInitialized = false;
 let isYTPlaying = false;
 
 const CORRECT_YT_ID = "RgkoXU4BlOE"; // YouTube ID ที่ถูกต้อง
-const SPOTIFY_TRACK_URI = "spotify:track:5jC3lBWBcVdby76sqWwqAE";
 
 const nameInputSection = document.getElementById('name-input-section');
 const playerNameInput = document.getElementById('player-name-input');
@@ -34,6 +31,11 @@ const tabSpotify = document.getElementById('tab-spotify');
 const tabYoutube = document.getElementById('tab-youtube');
 const spotifyBox = document.getElementById('spotify-box');
 const youtubeBox = document.getElementById('youtube-box');
+
+// ปุ่มควบคุม Spotify Play/Pause
+const spotifyPlayToggle = document.getElementById('spotify-play-toggle');
+const spotifyBtnIcon = document.getElementById('spotify-btn-icon');
+const spotifyBtnText = document.getElementById('spotify-btn-text');
 
 window.onload = () => {
     totalElapsedSeconds = parseInt(localStorage.getItem('insomnia_total_seconds')) || 0;
@@ -88,6 +90,15 @@ window.onload = () => {
         });
     }
 
+    // ปุ่มกดนับเวลาของ Spotify
+    if (spotifyPlayToggle) {
+        spotifyPlayToggle.addEventListener('click', () => {
+            isSpotifyManualPlaying = !isSpotifyManualPlaying;
+            updateSpotifyButtonUI();
+            evaluateTimerState();
+        });
+    }
+
     // ระบบสลับแท็บเครื่องเล่น
     if (tabSpotify && tabYoutube) {
         tabSpotify.addEventListener('click', () => {
@@ -139,39 +150,13 @@ function activateCharacterCard(charName, imgUrl) {
 
     characterSelectSection.classList.add('hidden');
     playerSection.classList.remove('hidden');
-    statusText.textContent = `${playerName} พร้อมจำศีลกับ ${selectedCharacter} (กด Play เพลงที่ต้องการได้เลย)`;
+    
+    // รีเซ็ตสถานะเมื่อเริ่มเข้ามาใหม่ (ไม่นับเวลาอัตโนมัติจนกว่าจะกดเล่น)
+    resetAllPlayback();
+    statusText.textContent = `${playerName} พร้อมจำศีลกับ ${selectedCharacter} (เลือกช่องทางฟังเพลงได้เลย)`;
 }
 
-// 1. Spotify Embed API ดักจับสถานะ Play/Pause อัตโนมัติ
-window.onSpotifyIframeApiReady = (IFrameAPI) => {
-    const element = document.getElementById('spotify-embed-container');
-    const options = {
-        width: '100%',
-        height: '80',
-        uri: SPOTIFY_TRACK_URI
-    };
-    
-    const callback = (EmbedController) => {
-        spotifyController = EmbedController;
-        EmbedController.addListener('playback_update', e => {
-            // e.data.isPaused จะบอกสถานะว่าหยุดเล่นอยู่หรือไม่
-            if (e.data.isPaused) {
-                isSpotifyPlaying = false;
-            } else {
-                isSpotifyPlaying = true;
-            }
-            evaluateTimerState();
-        });
-    };
-
-    IFrameAPI.createIframe(element, options, callback);
-};
-
-// 2. YouTube Player API ดักจับสถานะ Play/Pause อัตโนมัติ
-window.onYouTubeIframeAPIReady = function() {
-    // จะถูกเรียกเมื่อ YouTube API โหลดเสร็จ
-};
-
+// สร้าง YouTube Player ควบคุมผ่าน API
 function initYTPlayer() {
     ytPlayer = new YT.Player('youtube-player', {
         height: '130',
@@ -201,11 +186,24 @@ function onYTPlayerStateChange(event) {
     evaluateTimerState();
 }
 
-// ประเมินสถานะการนับเวลารวม (นับเฉพาะตอนกด Play จริงๆ เท่านั้น)
+// อัปเดตหน้าตาปุ่ม Spotify
+function updateSpotifyButtonUI() {
+    if (isSpotifyManualPlaying) {
+        spotifyPlayToggle.className = "w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold py-2 px-3 rounded-lg transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-sm";
+        spotifyBtnIcon.textContent = "⏸️";
+        spotifyBtnText.textContent = "หยุดพักการนับเวลา Spotify (Pause)";
+    } else {
+        spotifyPlayToggle.className = "w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-2 px-3 rounded-lg transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-sm";
+        spotifyBtnIcon.textContent = "▶️";
+        spotifyBtnText.textContent = "กดเพื่อเริ่มนับเวลาฟัง Spotify";
+    }
+}
+
+// ประเมินสถานะการนับเวลารวม
 function evaluateTimerState() {
-    if (isSpotifyPlaying || isYTPlaying) {
+    if (isSpotifyManualPlaying || isYTPlaying) {
         startTimer();
-        const platform = isSpotifyPlaying ? "Spotify" : "YouTube";
+        const platform = isSpotifyManualPlaying ? "Spotify" : "YouTube";
         statusText.textContent = `${playerName} กำลังฟังเพลงผ่าน ${platform} กับ ${selectedCharacter} 💤`;
     } else {
         stopTimer();
@@ -215,10 +213,10 @@ function evaluateTimerState() {
 
 function resetAllPlayback() {
     stopTimer();
-    isSpotifyPlaying = false;
+    isSpotifyManualPlaying = false;
     isYTPlaying = false;
-    if (spotifyController && typeof spotifyController.pause === 'function') spotifyController.pause();
     if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+    updateSpotifyButtonUI();
 }
 
 function startTimer() {
@@ -250,7 +248,7 @@ if (shareXBtn) {
     shareXBtn.addEventListener('click', async () => {
         const timerText = sleepTimerEl.textContent;
         const currentUrl = window.location.href;
-        const cardContainer = document.getElementById('share-card-container');
+    const cardContainer = document.getElementById('share-card-container');
 
         statusText.textContent = "กำลังสร้างรูปภาพการ์ดของคุณ...";
 

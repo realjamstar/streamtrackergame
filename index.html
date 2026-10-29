@@ -32,7 +32,7 @@
         <div id="status-container" class="space-y-2 mb-4">
             <p id="status-text" class="text-purple-300 text-sm font-light">พิมพ์ชื่อของคุณแล้วเลือกเมมเบอร์ที่ต้องการ</p>
             <p class="text-xs text-pink-300 bg-purple-950/40 py-1.5 px-3 rounded-xl border border-pink-500/20">
-                ✨⚠️ กด Play ที่เครื่องเล่นเพลง (Spotify หรือ YouTube) เวลานับอัตโนมัติเฉพาะตอนเพลงเล่น ✨ 
+                ✨⚠️ กด Play เพื่อเริ่มฟังและสะสมเวลานอนไปพร้อมกัน ✨ 
             </p>
         </div>
 
@@ -94,12 +94,17 @@
                 <button id="tab-youtube" class="py-1.5 px-3 rounded-lg text-xs font-bold text-purple-300 hover:text-white transition">❤️ YouTube</button>
             </div>
 
-            <!-- 1. Spotify Player Box (ควบคุมผ่าน Spotify Iframe API ดักจับ Play/Pause) -->
-            <div id="spotify-box" class="bg-purple-950/20 p-2 rounded-xl border border-purple-500/10">
-                <div id="spotify-embed-container"></div>
+            <!-- 1. Spotify Player Box (ใช้ Iframe ปกติ พร้อมปุ่มกด Play ควบคุมเวลาเองอย่างแม่นยำ) -->
+            <div id="spotify-box" class="bg-purple-950/20 p-2.5 rounded-xl border border-purple-500/10 space-y-2">
+                <iframe src="https://open.spotify.com/embed/track/5jC3lBWBcVdby76sqWwqAE?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" class="rounded-xl shadow-md"></iframe>
+                
+                <button id="spotify-play-toggle" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-2 px-3 rounded-lg transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-sm">
+                    <span id="spotify-btn-icon">▶️</span>
+                    <span id="spotify-btn-text">กดเพื่อเริ่มนับเวลาฟัง Spotify</span>
+                </button>
             </div>
 
-            <!-- 2. YouTube Player Box (ID: RgkoXU4BlOE ควบคุมผ่าน API) -->
+            <!-- 2. YouTube Player Box (ID: RgkoXU4BlOE ควบคุมอัตโนมัติ) -->
             <div id="youtube-box" class="hidden bg-purple-950/20 p-2 rounded-xl border border-purple-500/10 overflow-hidden">
                 <div id="youtube-player" class="w-full h-32 rounded-lg"></div>
             </div>
@@ -119,8 +124,7 @@
         </div>
     </div>
 
-    <!-- โหลด API ทั้งสองตัว -->
-    <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
+    <!-- โหลด YouTube Iframe API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script type="module" src="app.js"></script>
 </body>
