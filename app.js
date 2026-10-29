@@ -1,7 +1,13 @@
 let timerInterval = null;
 let totalElapsedSeconds = 0; 
 let selectedCharacter = null; 
+let playerName = "";
 
+const nameInputSection = document.getElementById('name-input-section');
+const playerNameInput = document.getElementById('player-name-input');
+const startNameBtn = document.getElementById('start-name-btn');
+const userProfile = document.getElementById('user-profile');
+const userNameEl = document.getElementById('user-name');
 const characterSelectSection = document.getElementById('character-select-section');
 const playerSection = document.getElementById('player-section');
 const statusText = document.getElementById('status-text');
@@ -11,9 +17,36 @@ const pixelTimerBox = document.getElementById('pixel-timer-box');
 const backToSelectBtn = document.getElementById('back-to-select-btn');
 
 window.onload = () => {
-    // โหลดเวลาสะสมเดิมที่เคยเปิดทิ้งไว้ (ถ้ามี) หรือเริ่มที่ 0
     totalElapsedSeconds = parseInt(localStorage.getItem('insomnia_total_seconds')) || 0;
     updateTimerDisplay(totalElapsedSeconds);
+
+    // ตรวจสอบว่าเคยใส่ชื่อไว้ก่อนหน้านี้ไหม
+    const savedName = localStorage.getItem('insomnia_player_name');
+    if (savedName) {
+        playerName = savedName;
+        userNameEl.textContent = playerName;
+        userProfile.classList.remove('hidden');
+        nameInputSection.classList.add('hidden');
+        characterSelectSection.classList.remove('hidden');
+        statusText.textContent = "เลือกเมมเบอร์ที่คุณอยากให้มาอยู่เป็นเพื่อนจำศีล";
+    }
+
+    startNameBtn.addEventListener('click', () => {
+        const inputVal = playerNameInput.value.trim();
+        if (!inputVal) {
+            alert("กรุณากรอกชื่อของคุณก่อนเริ่มต้นครับ!");
+            return;
+        }
+
+        playerName = inputVal;
+        localStorage.setItem('insomnia_player_name', playerName);
+
+        userNameEl.textContent = playerName;
+        userProfile.classList.remove('hidden');
+        nameInputSection.classList.add('hidden');
+        characterSelectSection.classList.remove('hidden');
+        statusText.textContent = "เลือกเมมเบอร์ที่คุณอยากให้มาอยู่เป็นเพื่อนจำศีล";
+    });
 
     const charSelectBtns = document.querySelectorAll('.char-select-btn');
     charSelectBtns.forEach(btn => {
@@ -45,7 +78,7 @@ function activateCharacterCard(charName, imgUrl) {
 
     characterSelectSection.classList.add('hidden');
     playerSection.classList.remove('hidden');
-    statusText.textContent = `กำลังจำศีลกับ ${selectedCharacter} 💤`;
+    statusText.textContent = `${playerName} กำลังจำศีลกับ ${selectedCharacter} 💤`;
 }
 
 function startTimer() {
@@ -104,7 +137,7 @@ if (shareXBtn) {
             statusText.textContent = `บันทึกภาพการ์ดเรียบร้อย! กำลังเปิด X... 💤`;
 
             const tweetMessage = encodeURIComponent(
-                `🌙 ฉันเปิดหน้าเว็บฟังเพลง Insomnia - RIIZE สะสมเวลาความฝันกับ ${selectedCharacter} ไปแล้ว ${timerText} นาที 💤✨\n\n(บันทึกภาพการ์ดแล้ว อย่าลืมแนบรูปภาพลงในโพสต์นะ!)\n\nมาร่วมเปิดแท็บฟังเพลงและสะสมเวลาไปด้วยกันที่:`
+                `🌙 ${playerName} เปิดหน้าเว็บฟังเพลง Insomnia - RIIZE สะสมเวลาความฝันกับ ${selectedCharacter} ไปแล้ว ${timerText} นาที 💤✨\n\n(บันทึกภาพการ์ดแล้ว อย่าลืมแนบรูปภาพลงในโพสต์นะ!)\n\nมาร่วมเปิดแท็บฟังเพลงและสะสมเวลาไปด้วยกันที่:`
             );
 
             const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;
