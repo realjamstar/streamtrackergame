@@ -1,30 +1,8 @@
-let timerInterval = null;
-let totalElapsedSeconds = 0; 
-let selectedCharacter = null; 
-let playerName = "";
-let embedControllerRef = null;
-
-const nameInputSection = document.getElementById('name-input-section');
-const playerNameInput = document.getElementById('player-name-input');
-const startNameBtn = document.getElementById('start-name-btn');
-const userProfile = document.getElementById('user-profile');
-const userNameEl = document.getElementById('user-name');
-const editNameBtn = document.getElementById('edit-name-btn');
-const resetTimerBtn = document.getElementById('reset-timer-btn');
-const characterSelectSection = document.getElementById('character-select-section');
-const playerSection = document.getElementById('player-section');
-const statusText = document.getElementById('status-text');
-const sleepTimerEl = document.getElementById('sleep-timer');
-const selectedCharImg = document.getElementById('selected-char-img');
-const pixelTimerBox = document.getElementById('pixel-timer-box');
-const backToSelectBtn = document.getElementById('back-to-select-btn');
-
+// เอาการเรียก initSpotifyEmbed ออกจาก window.onload
 window.onload = () => {
-    // โหลดเวลาสะสมเดิมที่เคยเก็บไว้
     totalElapsedSeconds = parseInt(localStorage.getItem('insomnia_total_seconds')) || 0;
     updateTimerDisplay(totalElapsedSeconds);
 
-    // ตรวจสอบชื่อผู้เล่นเดิมใน LocalStorage
     const savedName = localStorage.getItem('insomnia_player_name');
     if (savedName) {
         playerName = savedName;
@@ -35,7 +13,6 @@ window.onload = () => {
         statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
     }
 
-    // กดปุ่มเริ่มหลังจากพิมพ์ชื่อ
     startNameBtn.addEventListener('click', () => {
         const inputVal = playerNameInput.value.trim();
         if (!inputVal) {
@@ -53,7 +30,6 @@ window.onload = () => {
         statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
     });
 
-    // ปุ่มแก้ไขชื่อ
     if (editNameBtn) {
         editNameBtn.addEventListener('click', () => {
             stopTimer();
@@ -66,7 +42,6 @@ window.onload = () => {
         });
     }
 
-    // ปุ่มรีเซ็ตเวลาเป็น 0
     if (resetTimerBtn) {
         resetTimerBtn.addEventListener('click', () => {
             if (confirm("คุณต้องการรีเซ็ตเวลาสะสมทั้งหมดกลับเป็น 0 ใช่หรือไม่?")) {
@@ -77,7 +52,6 @@ window.onload = () => {
         });
     }
 
-    // เลือกตัวละครเมมเบอร์
     const charSelectBtns = document.querySelectorAll('.char-select-btn');
     charSelectBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -88,7 +62,6 @@ window.onload = () => {
         });
     });
 
-    // ปุ่มกลับไปเลือกเมมเบอร์อื่น
     if (backToSelectBtn) {
         backToSelectBtn.addEventListener('click', () => {
             stopTimer(); 
@@ -97,10 +70,27 @@ window.onload = () => {
             statusText.textContent = "เลือกเมมเบอร์ที่ต้องการ";
         });
     }
-
-    // โหลด Spotify Iframe API สำหรับสร้าง Embed Player
-    initSpotifyEmbed();
 };
+
+let isPlayerLoaded = false;
+
+function activateCharacterCard(charName, imgUrl) {
+    selectedCharacter = charName;
+    selectedCharImg.src = imgUrl;
+
+    pixelTimerBox.className = "pixel-timer-container";
+    pixelTimerBox.classList.add(`pos-${selectedCharacter.toLowerCase()}`);
+
+    characterSelectSection.classList.add('hidden');
+    playerSection.classList.remove('hidden');
+    statusText.textContent = `${playerName} พร้อมจำศีลกับ ${selectedCharacter} (กด Play เพลงด้านล่างเพื่อเริ่มนับเวลา)`;
+
+    // โหลด Spotify Embed Player ทันทีที่ผู้ใช้เลือกเมมเบอร์และเข้ามาหน้า player-section แล้ว
+    if (!isPlayerLoaded) {
+        initSpotifyEmbed();
+        isPlayerLoaded = true;
+    }
+}
 
 function initSpotifyEmbed() {
     window.onSpotifyIframeApiReady = (IFrameAPI) => {
@@ -113,7 +103,6 @@ function initSpotifyEmbed() {
         
         const callback = (EmbedController) => {
             embedControllerRef = EmbedController;
-            // ดักจับสถานะ Play / Pause จาก Embed Player
             EmbedController.addListener('playback_update', e => {
                 if (e.data.isPaused) {
                     stopTimer();
@@ -128,89 +117,11 @@ function initSpotifyEmbed() {
         IFrameAPI.createIframe(element, options, callback);
     };
 
-    const scriptTag = document.createElement('script');
-    scriptTag.src = "https://open.spotify.com/embed/iframe-api/v1";
-    scriptTag.async = true;
-    document.body.appendChild(scriptTag);
-}
-
-function activateCharacterCard(charName, imgUrl) {
-    selectedCharacter = charName;
-    selectedCharImg.src = imgUrl;
-
-    pixelTimerBox.className = "pixel-timer-container";
-    pixelTimerBox.classList.add(`pos-${selectedCharacter.toLowerCase()}`);
-
-    characterSelectSection.classList.add('hidden');
-    playerSection.classList.remove('hidden');
-    statusText.textContent = `${playerName} พร้อมจำศีลกับ ${selectedCharacter} (กด Play เพลงด้านล่างเพื่อเริ่มนับเวลา)`;
-}
-
-function startTimer() {
-    if (timerInterval) return;
-
-    timerInterval = setInterval(() => {
-        totalElapsedSeconds++;
-        updateTimerDisplay(totalElapsedSeconds);
-        localStorage.setItem('insomnia_total_seconds', totalElapsedSeconds);
-    }, 1000);
-}
-
-function stopTimer() {
-    clearInterval(timerInterval);
-    timerInterval = null;
-}
-
-function updateTimerDisplay(totalSeconds) {
-    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-    const seconds = String(totalSeconds % 60).padStart(2, '0');
-    
-    sleepTimerEl.textContent = `${minutes}:${seconds}`;
-}
-
-// ระบบบันทึกภาพการ์ดพร้อมเวลาและแชร์ไปที่ X
-const shareXBtn = document.getElementById('share-x-btn');
-if (shareXBtn) {
-    shareXBtn.addEventListener('click', async () => {
-        const timerText = sleepTimerEl.textContent;
-        const currentUrl = window.location.href;
-        const cardContainer = document.getElementById('share-card-container');
-
-        statusText.textContent = "กำลังสร้างรูปภาพการ์ดของคุณ...";
-
-        try {
-            const canvas = await html2canvas(cardContainer, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: null
-            });
-
-            const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            const imageURL = URL.createObjectURL(imageBlob);
-            
-            const downloadLink = document.createElement('a');
-            downloadLink.href = imageURL;
-            downloadLink.download = `insomnia-sleep-card-${selectedCharacter.toLowerCase()}.png`;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-
-            statusText.textContent = `บันทึกภาพการ์ดเรียบร้อย! กำลังเปิด X... 💤`;
-
-            const tweetMessage = encodeURIComponent(
-                `🌙 ${playerName} ฟังเพลง Insomnia - RIIZE สะสมเวลาความฝันกับ ${selectedCharacter} ไปแล้ว ${timerText} นาที 💤✨\n\n(บันทึกภาพการ์ดแล้ว อย่าลืมแนบรูปภาพลงในโพสต์นะ!)\n\nมาร่วมฟังเพลงและสะสมเวลาไปด้วยกันที่:`
-            );
-
-            const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;
-            setTimeout(() => {
-                window.open(twitterShareUrl, '_blank');
-            }, 1000);
-
-        } catch (error) {
-            console.error("Error generating card image:", error);
-            statusText.textContent = "เกิดข้อผิดพลาดในการสร้างภาพการ์ด กรุณาลองใหม่อีกครั้ง";
-        }
-    });
+    if (!document.getElementById('spotify-iframe-script')) {
+        const scriptTag = document.createElement('script');
+        scriptTag.id = 'spotify-iframe-script';
+        scriptTag.src = "https://open.spotify.com/embed/iframe-api/v1";
+        scriptTag.async = true;
+        document.body.appendChild(scriptTag);
+    }
 }
