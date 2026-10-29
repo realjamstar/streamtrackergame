@@ -11,7 +11,14 @@
 </head>
 <body class="night-pastel-bg text-slate-100 flex flex-col items-center justify-center min-h-screen p-4">
 
-    <div class="text-center p-6 night-pastel-card rounded-3xl shadow-2xl max-w-md w-full border border-purple-500/30">
+    <div class="relative text-center p-6 night-pastel-card rounded-3xl shadow-2xl max-w-md w-full border border-purple-500/30">
+        
+        <!-- 📌 ปุ่มเปลี่ยนภาษาสไตล์ Pixel (มุมขวาบนของการ์ด) -->
+        <button id="lang-toggle-btn" class="absolute top-4 right-4 bg-purple-900/60 hover:bg-purple-800 text-pink-200 border-2 border-purple-400/50 rounded-xl px-2.5 py-1 text-[10px] pixel-font shadow-md transition flex items-center space-x-1">
+            <span>🌐</span>
+            <span id="lang-label">EN</span>
+        </button>
+
         <h1 class="text-xl font-bold mb-3 pixel-title text-purple-200">✨ INSOMNIA TRACKER ✨</h1>
         
         <!-- การ์ดแสดงชื่อผู้เล่น พร้อมปุ่มเปลี่ยนชื่อและรีเซ็ตเวลา -->
@@ -22,31 +29,31 @@
             </div>
             <!-- ปุ่มจัดการชื่อและรีเซ็ตเวลา -->
             <div class="flex space-x-3 text-[11px]">
-                <button id="edit-name-btn" class="text-purple-300 hover:text-pink-300 underline transition">✏️ เปลี่ยนชื่อ</button>
+                <button id="edit-name-btn" class="text-purple-300 hover:text-pink-300 underline transition" data-i18n="editName">✏️ เปลี่ยนชื่อ</button>
                 <span class="text-purple-600">|</span>
-                <button id="reset-timer-btn" class="text-purple-300 hover:text-red-400 underline transition">🔄 รีเซ็ตเวลาเป็น 0</button>
+                <button id="reset-timer-btn" class="text-purple-300 hover:text-red-400 underline transition" data-i18n="resetTimer">🔄 รีเซ็ตเวลาเป็น 0</button>
             </div>
         </div>
 
         <!-- ข้อความสถานะและคำเตือน -->
         <div id="status-container" class="space-y-2 mb-4">
-            <p id="status-text" class="text-purple-300 text-sm font-light">พิมพ์ชื่อของคุณแล้วเลือกเมมเบอร์ที่ต้องการ</p>
-            <p class="text-xs text-pink-300 bg-purple-950/40 py-1.5 px-3 rounded-xl border border-pink-500/20">
+            <p id="status-text" class="text-purple-300 text-sm font-light" data-i18n="statusInitial">พิมพ์ชื่อของคุณแล้วเลือกเมมเบอร์ที่ต้องการ</p>
+            <p class="text-xs text-pink-300 bg-purple-950/40 py-1.5 px-3 rounded-xl border border-pink-500/20" data-i18n="warningText">
                 ✨⚠️ เลือกช่องทางฟังเพลง (Spotify หรือ YouTube) เวลานับอัตโนมัติเมื่อกดฟัง ✨ 
             </p>
         </div>
 
         <!-- ช่องกรอกชื่อผู้เล่น (หน้าแรกสุด) -->
         <div id="name-input-section" class="space-y-3 mb-2">
-            <input type="text" id="player-name-input" placeholder="พิมพ์ชื่อของคุณที่นี่..." maxlength="20" class="w-full bg-purple-950/50 border border-purple-500/40 rounded-xl px-4 py-2.5 text-center text-pink-200 placeholder-purple-400/60 focus:outline-none focus:border-pink-400 text-sm shadow-sm">
-            <button id="start-name-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2.5 px-6 rounded-full transition duration-200 shadow-lg shadow-purple-500/20 text-sm">
+            <input type="text" id="player-name-input" placeholder="พิมพ์ชื่อของคุณที่นี่..." maxlength="20" class="w-full bg-purple-950/50 border border-purple-500/40 rounded-xl px-4 py-2.5 text-center text-pink-200 placeholder-purple-400/60 focus:outline-none focus:border-pink-400 text-sm shadow-sm" data-i18n-placeholder="namePlaceholder">
+            <button id="start-name-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2.5 px-6 rounded-full transition duration-200 shadow-lg shadow-purple-500/20 text-sm" data-i18n="startBtn">
                 เริ่มเข้าสู่การ Insomnia 💤
             </button>
         </div>
 
         <!-- หน้าที่ 1: เลือกตัวการ์ตูนทั้ง 6 ตัว (ซ่อนไว้ก่อนจนกว่าจะกรอกชื่อ) -->
         <div id="character-select-section" class="hidden mt-2 space-y-4">
-            <p class="text-xs font-semibold text-purple-200">เลือกเมมเบอร์ที่ต้องการ:</p>
+            <p class="text-xs font-semibold text-purple-200" data-i18n="selectMember">เลือกเมมเบอร์ที่ต้องการ:</p>
             <div class="grid grid-cols-2 gap-3">
                 <!-- 1. SHOTARO -->
                 <button type="button" class="char-select-btn p-3 rounded-2xl bg-purple-950/40 border-2 border-purple-800/50 hover:border-pink-400 transition flex flex-col items-center space-y-2 group" data-name="SHOTARO" data-img="images/shotaro.png" data-card-img="images/17.jpg">
@@ -84,7 +91,7 @@
         <!-- หน้าที่ 2: แสดงผลการ์ด, ตัวเลือกเครื่องเล่น (Tabs) และตัวเล่นเพลง -->
         <div id="player-section" class="hidden mt-4 space-y-3">
             
-            <button id="back-to-select-btn" class="text-xs text-purple-300 hover:text-pink-300 underline mb-1">
+            <button id="back-to-select-btn" class="text-xs text-purple-300 hover:text-pink-300 underline mb-1" data-i18n="backToSelect">
                 ← กลับไปเลือกเมมเบอร์อื่น
             </button>
 
@@ -100,10 +107,9 @@
                 
                 <button id="spotify-play-toggle" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-2 px-3 rounded-lg transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-sm">
                     <span id="spotify-btn-icon">▶️</span>
-                    <span id="spotify-btn-text">กดเพื่อเริ่มนับเวลาฟัง Spotify</span>
+                    <span id="spotify-btn-text" data-i18n="spotifyPlayBtn">กดเพื่อเริ่มนับเวลาฟัง Spotify</span>
                 </button>
-                <!-- 📌 เพิ่มข้อความคำแนะนำเล็กๆ ตรงนี้ -->
-                <p class="text-[10px] text-purple-300/80 italic">สำหรับ Spotify อย่าลืมกดปุ่มนับเวลาก่อนกดปุ่มเล่นนะคับ ♥</p>
+                <p class="text-[10px] text-purple-300/80 italic" data-i18n="spotifyTip">สำหรับ Spotify อย่าลืมกดปุ่มนับเวลาก่อนกดปุ่มเล่นนะคับ ♥</p>
             </div>
 
             <!-- 2. YouTube Player Box -->
@@ -121,7 +127,7 @@
             </div>
 
             <button id="share-x-btn" class="w-full bg-slate-900 hover:bg-black border border-purple-500/30 text-white font-bold py-2.5 px-4 rounded-full transition duration-200 flex items-center justify-center space-x-2 text-xs shadow-md">
-                <span>𝕏 บันทึกภาพการ์ดและแชร์ไปที่ X</span>
+                <span data-i18n="shareBtn">𝕏 บันทึกภาพการ์ดและแชร์ไปที่ X</span>
             </button>
         </div>
     </div>
