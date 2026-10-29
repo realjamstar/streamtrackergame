@@ -20,9 +20,8 @@ body {
 
 .pixel-font {
     font-family: 'Press Start 2P', monospace;
-    font-size: clamp(0.5rem, 1.6vw, 0.68rem);
+    font-size: clamp(0.45rem, 1.4vw, 0.6rem);
     letter-spacing: -1px;
-    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
 }
 
 .pixel-title {
@@ -37,37 +36,25 @@ body {
     font-size: 0.55rem;
 }
 
+/* กล่องพิกัดสำหรับครอบตัวเลขให้อยู่ในช่อง Bubble สีขาว */
 .pixel-timer-container {
     position: absolute;
-    left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(18, 12, 31, 0.85);
-    padding: 3px 6px;
-    border-radius: 4px;
-    border: 1px solid rgba(244, 114, 182, 0.4);
-    width: 70%;
+    background: transparent;
+    padding: 2px 4px;
     text-align: center;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+    width: 32%;
 }
 
-/* 📌 พิกัดตำแหน่งช่องคำพูดของการ์ดแต่ละตัวละคร (สามารถปรับตัวเลข top % ตรงนี้ได้หากต้องการขยับ) */
-.pos-shotaro { top: 62%; left: 50%; }
-.pos-eunseok { top: 60%; left: 50%; }
-.pos-sungchan { top: 64%; left: 50%; }
-.pos-wonbin { top: 61%; left: 50%; }
-.pos-sohee { top: 63%; left: 50%; }
-.pos-anton { top: 62%; left: 50%; }
+/* 📌 พิกัดตำแหน่งช่อง Bubble คำพูดของการ์ดแต่ละเมมเบอร์ (ปรับ top / left ตรงนี้ได้ถ้าต้องการขยับ) */
+.pos-shotaro { top: 22.5%; left: 35.5%; }
+.pos-eunseok { top: 12.5%; left: 21.0%; }
+.pos-sungchan { top: 20.0%; left: 47.0%; }
+.pos-wonbin { top: 20.0%; left: 63.5%; }
+.pos-sohee { top: 24.5%; left: 21.0%; }
+.pos-anton { top: 13.0%; left: 23.0%; }
 
 .char-select-btn.selected {
     border-color: #f472b6 !important;
     background-color: rgba(244, 114, 182, 0.2) !important;
-}
-
-@keyframes breathing {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-3px) scale(1.01); }
-}
-
-#selected-char-img {
-    animation: breathing 4s ease-in-out infinite;
 }

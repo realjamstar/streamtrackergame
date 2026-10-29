@@ -124,7 +124,7 @@ window.onload = async () => {
         backToSelectBtn.addEventListener('click', () => {
             playerSection.classList.add('hidden');
             characterSelectSection.classList.remove('hidden');
-            statusText.textContent = "เลือกตัวละครของคุณเพื่อเริ่มจำศีล";
+            statusText.textContent = "เลือกเมมเบอร์ของคุณเพื่อเริ่มจำศีล";
         });
     }
 };
@@ -171,11 +171,11 @@ async function loadUserDataFromFirestore(spotifyId, displayName) {
                     activateCharacterCard(selectedCharacter, targetBtn.getAttribute('data-img'));
                 } else {
                     characterSelectSection.classList.remove('hidden');
-                    statusText.textContent = "กรุณาเลือกตัวละครของคุณ";
+                    statusText.textContent = "กรุณาเลือกเมมเบอร์ของคุณ";
                 }
             } else {
                 characterSelectSection.classList.remove('hidden');
-                statusText.textContent = "กรุณาเลือกตัวละครของคุณ";
+                statusText.textContent = "กรุณาเลือกเมมเบอร์ของคุณ";
             }
         } else {
             totalElapsedSeconds = 0;
@@ -187,7 +187,7 @@ async function loadUserDataFromFirestore(spotifyId, displayName) {
                 updated_at: serverTimestamp()
             });
             characterSelectSection.classList.remove('hidden');
-            statusText.textContent = "กรุณาเลือกตัวละครของคุณ";
+            statusText.textContent = "กรุณาเลือกเมมเบอร์ของคุณ";
         }
         updateTimerDisplay(totalElapsedSeconds);
         startCheckingMusic();
@@ -277,9 +277,11 @@ function updateTimerDisplay(totalSeconds) {
     const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
     const seconds = String(totalSeconds % 60).padStart(2, '0');
     
-    sleepTimerEl.textContent = `${hours}:${minutes}:${seconds}`;
+    // หากต้องการแสดงผลเฉพาะหน่วยนาทีหรือรูปแบบเต็ม (HH:MM:SS) สามารถปรับเปลี่ยนตรงนี้ได้ครับ
+    sleepTimerEl.textContent = `${minutes}:${seconds}`;
 }
 
+// ระบบบันทึกภาพการ์ดพร้อมเวลาและแชร์ไปที่ X
 const shareXBtn = document.getElementById('share-x-btn');
 if (shareXBtn) {
     shareXBtn.addEventListener('click', async () => {
@@ -309,7 +311,7 @@ if (shareXBtn) {
             statusText.textContent = `บันทึกภาพการ์ดเรียบร้อย! กำลังเปิด X... 💤`;
 
             const tweetMessage = encodeURIComponent(
-                `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE โดยมี ${selectedCharacter} มาอยู่เป็นเพื่อน ไปแล้ว ${timerText} 💤✨\n\n(บันทึกภาพการ์ดแล้ว อย่าลืมแนบรูปภาพลงในโพสต์นะ!)\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
+                `🌙 ฉันสะสมเวลานอนหลับกับเพลง Insomnia - RIIZE โดยมี ${selectedCharacter} มาอยู่เป็นเพื่อน ไปแล้ว ${timerText} นาที 💤✨\n\n(บันทึกภาพการ์ดแล้ว อย่าลืมแนบรูปภาพลงในโพสต์นะ!)\n\nมาร่วมจำศีลฟังเพลงไปด้วยกันที่:`
             );
 
             const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetMessage}&url=${encodeURIComponent(currentUrl)}`;
